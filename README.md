@@ -1,2 +1,4 @@
 # SQL-Basics
-SQL for Beginner
+###
+tiny sql-drive 
+learn sql for beginner
