@@ -1,0 +1,3869 @@
+use standard;
+go
+--------------------------------------------------------------------------------
+--Select ohne Datenquellen 
+select getdate()				-- aktuelles Datum wird angezeigt
+--------------------------------------------------------------------------------
+--Select mit Datenquellen
+--Beispiel: Alle Angaben zu allen Lieferanten
+select * from lieferant;
+go
+--------------------------------------------------------------------------------
+--Der Stern sollte nur für Testabfragen verwendet werden.
+--Programmierer verwenden die Spaltennamen.
+--------------------------------------------------------------------------------
+select lnr, lname, status, lstadt
+from lieferant;
+go
+--------------------------------------------------------------------------------
+--voll qualifizierter Name
+select lnr, lname, status, lstadt
+from dbo.lieferant;
+go
+
+select lnr, lname, status, lstadt
+from standard.dbo.lieferant;
+go
+
+select lnr, lname, status, lstadt
+from sql16serv1.standard.dbo.lieferant;
+go
+--------------------------------------------------------------------------------
+--Aus der Datenbank Standard heraus soll die Tabelle person im person der DB
+--AdventureWorks2012 abgefragt werden. Dabei soll der Datenbankkontext des
+--aufrufenden Stapels nicht geändert (use...) werden.
+--------------------------------------------------------------------------------
+select * 
+from AdventureWorks2012.person.person;
+go
+--------------------------------------------------------------------------------
+--ausgewählte Spaltenwerte
+--Beispiel:
+--Wohnorte und Namen aller Lieferanten 
+select lstadt, lname
+from lieferant;
+go
+--------------------------------------------------------------------------------
+--ausgewählte Datensätze     
+--dafür wird die WHERE - Klausel benötigt
+--------------------------------------------------------------------------------
+--Vergleichsoperatoren 
+--Beispiel:
+--Nummern, Name und Farbe der Artikel die in Hamburg lagern
+select anr, aname, farbe from artikel
+where astadt = 'Hamburg';
+go
+--------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferungen nachdem 01.08.90
+select * from lieferung 
+WHERE ldatum > '01.08.90';
+go
+
+select * from lieferung
+WHERE ldatum > '1.8.90';
+go
+
+select * from lieferung
+WHERE ldatum > '01.08.1990';
+go
+
+select * from lieferung
+WHERE ldatum > '1990-08-01';
+go
+--------------------------------------------------------------------------------
+--Beispiel:                                                                           
+--Alle Lieferungen mit einer Liefermenge von 200 Stück
+select * from lieferung 
+WHERE lmenge = 200;
+go
+
+select * from lieferung 
+WHERE lmenge = 200 or ldatum > '1990-08-01';
+go
+--------------------------------------------------------------------------------------
+--Bereiche angeben
+--mit between können Bereiche definiert werden. Die angegebenen Grenzen
+--(von - bis) sind einschließlich 
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferungen zwischen den 20.07.90 und dem 18.08.90
+select * 
+from lieferung
+where ldatum between '20.07.90' and '18.08.90';
+go
+
+select * from lieferung
+where ldatum >= '20.07.90' and ldatum <= '18.08.90';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferungen die nicht zwischen dem 20.07.90 und dem 18.08.90
+--geliefert wurden
+select *
+from lieferung
+where ldatum not between '20.07.90' and '18.08.90';
+go
+--------------------------------------------------------------------------------------
+--between wird hauptsächlich auf Numerische- und Datumsdatentypen 
+--angewendet.
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten deren Namen mit den Buchstaben B bis J beginnen
+select * from lieferant
+where lname between 'B' and 'J';
+go
+-- der Jonas wird nicht angezeigt, warum?
+select * from lieferant
+where lname between 'B' and 'JZ';
+go
+-- dafür verwendet man like
+select * from lieferant
+where lname like 'B' and 'JZ';
+go
+--------------------------------------------------------------------------------------
+--Listen
+--Beispiel:
+--Alle Lieferanten, die in Hamburg oder in Aachen wohnen
+select * from lieferant
+where lstadt in('Hamburg','Aaachen'); 
+go
+
+select * from lieferant
+where lstadt = 'hamburg' or lstadt = 'Aachen';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten, die nicht in Hamburg oder in Aachen wohnen
+select * from lieferant
+where lstadt not in ('Hamburg','Aachen');
+go
+
+select * from lieferant
+where lstadt <> 'hamburg' and lstadt <> 'Aachen';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Neuen Lieferanten aufnehmen
+insert into lieferant values('L10','Schu%lze', null, null);
+go
+--------------------------------------------------------------------------------------
+--LIKE Operator
+--kann nur auf alphanumerische Zeichen angewendet werden
+--verwendet Platzhalter (Joker-zeichen)
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten, die an einem Ort wohnen, der mit dem Buchstaben L beginnt.
+select * from lieferant 
+where lstadt like 'l%';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten deren Name an zweiter Stelle den Buchstaben L haben.
+select * from lieferant 
+where lname like '_l%';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten deren Name an zweiter Stelle den Buchstaben L haben und
+--an vorletzter Stelle den Buchstaben R.
+select * from lieferant 
+where lname like '_l%r_';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Lieferanten deren Name mit dem Buchstaben B bis J beginnen.
+select * from lieferant
+where lname like '[BJ]%';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Lieferanten in deren Namen an keiner Stelle ein A steht. 
+select * from lieferant
+where lname like '%[^a]%';
+go
+--bringt aber nichts :P
+select * from lieferant
+where lname not like '%a%';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Gesucht sind die Lieferanten in deren Name ein %- Zeichen steht
+select * from lieferant
+where lname like '%%';	
+go
+--Da % ein Platzhalter ist, muss ich mit einer Maske arbeiten.
+select * from lieferant
+where lname like '%t%%' escape 't';
+go
+--------------------------------------------------------------------------------------
+--Arbeiten mit unbekannten Werten
+--Beispiel:
+--Alle Lieferanten, deren Wohnort nicht bekannt ist.
+select * from lieferant
+where lstadt = NULL;
+go
+--das ist nach dem Ausführen kein Fehler, es ist eine leere Menge	
+--------------------------------------------------------------------------------------
+--Jeder Vergleich mit Unbekannt ergibt
+--Unbekannt
+--------------------------------------------------------------------------------------
+select * from lieferant
+where lstadt like 'NULL';
+go
+--------------------------------------------------------------------------------------
+insert into lieferant values('L11','Hustensaftschmuggler',5,' ');
+go
+--------------------------------------------------------------------------------------
+select * from lieferant
+where lstadt is NULL;
+go
+--YIPPIE HIER WIRD NUN WAS ANGEZEIGT
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Lieferanten ohne Statuswert sollen mit einem angenommenen Status von 50 
+--angezeigt werden.
+select lnr, lname, isnull(status,50) as [status], lstadt
+from lieferant;
+go
+
+select lnr, lname, isnull(status,50) as [status], lstadt
+from lieferant
+where status is null;
+go
+--------------------------------------------------------------------------------------
+--Arbeit mit mehreren Bedingungen in der WHERE- Klausel
+select * from artikel
+where gewicht > 15 and astadt like '[E-L]%' or amenge > 700;
+go
+
+select * from artikel
+where gewicht > 15 and (astadt like '[E-L]%' or amenge > 700);
+go
+--------------------------------------------------------------------------------------
+--Klammer mit höheren Prioritäten
+select * from artikel
+where gewicht > 15 and (astadt like '[E-L]%' or amenge > 700);
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+select anr, aname, gewicht, astadt, amenge
+from Artikel
+where anr in ('A01','A02','A03');
+go
+--------------------------------------------------------------------------------------
+--Ergebnismengen formatieren
+--1. Literale (erläuternder Text)
+--beschreibt Inhalt der Spalte
+select anr, aname, gewicht, 'Gramm' astadt, amenge, 'Stück'
+from Artikel
+where anr in ('A01','A02','A03');
+go
+--------------------------------------------------------------------------------------
+--2. Ändern der Spaltennamen
+select anr as [Artikelnummer], aname as [Artikelname],
+	gewicht as [Gewicht], 'Gramm' as [Gewichtseinheit],
+	astadt as [Lagerort], amenge as [Lagermenge], 'Stück' as [Lagereinheit]
+from Artikel
+where anr in ('A01','A02','A03');
+go
+--------------------------------------------------------------------------------------
+select anr [Artikelnummer], aname [Artikelname],
+	gewicht [Gewicht], 'Gramm' [Gewichtseinheit],
+	astadt [Lagerort], amenge [Lagermenge], 'Stück' [Lagereinheit]
+from Artikel
+where anr in ('A01','A02','A03');
+go
+--------------------------------------------------------------------------------------
+select [Artikelnummer] = anr, [Artikelname] = aname,
+[Gewicht] = gewicht, [Gewichtseinheit] = 'Gramm',
+	[Lagerort] = astadt, [Lagermenge] = amenge, [Lagereinheit] = 'Stück'
+from Artikel
+where anr in ('A01','A02','A03');
+go
+--------------------------------------------------------------------------------------
+--Sortieren der Ergebnismenge
+--Beispiel:
+--das Ergebnis soll nach dem Artikelnamen aufsteigend sortiert werden
+--und bei gleichen Artikelnamen nach dem Lagerort absteigend sortiert werden.
+select anr as [Artikelnummer], aname as [Artikelname],
+	gewicht as [Gewicht], 'Gramm' as [Gewichtseinheit],
+	astadt as [Lagerort], amenge as [Lagermenge], 'Stück' as [Lagereinheit]
+from Artikel
+order by aname asc, astadt desc;
+go
+--------------------------------------------------------------------------------------
+
+
+select anr as [Artikelnummer], aname as [Artikelname],
+	gewicht as [Gewicht], 'Gramm' as [Gewichtseinheit],
+	astadt as [Lagerort], amenge as [Lagermenge], 'Stück' as [Lagereinheit]
+from Artikel
+order by [Artikelname] asc, [Lagerort] desc;
+go
+--------------------------------------------------------------------------------------
+select anr as [Artikelnummer], aname as [Artikelname],
+	gewicht as [Gewicht], 'Gramm' as [Gewichtseinheit],
+	astadt as [Lagerort], amenge as [Lagermenge], 'Stück' as [Lagereinheit]
+from Artikel
+order by 2 asc, 5 desc;
+go
+--------------------------------------------------------------------------------------
+--Entfernen doppelter Datensätze aus dem Ergebnis
+--Schlüsselwort DISTINCT entfernt doppelte DS aus dem Ergebnis
+--DISTINCT wird eingesetzt
+--			1. in der Select- Liste
+--			2. im Argument einer Aggregatfunktion
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Welche Lieferanten (lnr) haben geliefert?
+select lnr from lieferung;				-- 12 DS mit redundanten Informationen
+select distinct lnr from lieferung;		-- 4 DS 
+select distinct lnr from lieferant;		-- falsche Anfrage
+--------------------------------------------------------------------------------------
+--Case- Ausdrücke
+--Einfaches Case 
+--es wird ein Ausdruck mit mehreren, anderen Ausdrücken verglichen um das
+--Result-set zu finden
+--------------------------------------------------------------------------------------
+select lnr, lname, lstadt, case lstadt
+when 'Hamburg' then 'wohnt im Norden'
+when 'Ludwigshafen' then 'wohnt im Westen'
+else 'wohnt auch'
+end as [Bewertung]
+from lieferant;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Löschung eines Lieferanten
+delete lieferant where lnr > 'L05';
+go
+--------------------------------------------------------------------------------------
+--komplexes Case
+--hier werden wie bei der WHERE- Klausel Boolesche Ausdrücke 
+--geprüft und bei Übereinstimmung ein Result-set zurückgegeben 
+--------------------------------------------------------------------------------------
+select anr, aname, amenge, farbe, 
+	case
+	when amenge = 1200 and farbe = 'grün' then 'toller Artikel'
+	when amenge = 1300 and farbe = 'blau' then 'noch besser'
+	else 'auch toll'
+	end as [Bewertung]
+from artikel;
+go
+--------------------------------------------------------------------------------------
+--Datentypen
+--Beispiel Das Wort Otto:
+
+char(10)			=	('Otto')	=  'Otto______'	= 10 Byte 
+varchar(10)			=	('Otto')	=  'Otto'		=  4 Byte
+
+nchar(10)			=	(N'Otto')	=  'Otto______'	= 20 Byte	
+--Aktiviert Unicode-Unterstützung, legt unicode aber NICHT als Standart fest. 
+--Unicode-Zeichenfolgen müssen mit N deklariert werden
+
+nvarchar(10)		=	(N'Otto')	=  'Otto'		=  8 Byte	
+--Unicode: Erweiterter Zeichensatz. Benötigt 2 Byte pro Zeichen
+--------------------------------------------------------------------------------------
+--Berechnen von Ergebnismengen und arbeiten mit Funktionen
+--Arithmetischen Operationen
+select 2 + 6;
+select 3 -9; 
+select 2 * 3; 
+select 2 * 3.3;
+select 5 / 2;		  --Ganzzahl der Division
+select 5 / 2.0;		--korrektes Ergebnis
+select 5 % 2;		  --ganzzahliger Divisionsrest (5 durch 2 = 2 Rest 1)
+go
+--------------------------------------------------------------------------------------
+select anr, aname, gewicht * 0.001 as [Gewicht in Kilo], 
+	amenge * gewicht * 0.001 as [Gesamtlagergewicht]
+from artikel;
+go
+--------------------------------------------------------------------------------------
+--Operator + für die Verkettung von Zeichenfolgen (Strings addieren)
+select 'Der Lieferant' + lname + '(' + lnr + '), wohnt in' +
+		lstadt + ' und hat einen Status von ' + cast(status as varchar(10))
+from Lieferant;
+go
+--------------------------------------------------------------------------------------
+--Skalare Funktionen
+select lname, DATALENGTH(lname), len(lname)  
+from lieferant;
+go
+
+select lname, DATALENGTH(lname) as [Anzahl Byte], len(lname) as [Anzahl Zeichen]
+from lieferant;
+go
+--------------------------------------------------------------------------------------
+select host_name();			--Name des Servers auf dem SQL Server läuft
+select host_id();			  --ID der aktuellen Arbeitsstation
+select user_name();			--Datenbankbenutzername
+select user_id();
+select suser_name();		-- Login 
+select suser_id();			 
+select newid();
+go
+--------------------------------------------------------------------------------------
+--mathematische Funktion
+select round(233.872, 2); 	--zwei Stellen nach dem Komma
+select round(233.872, -1); --eine Stelle vor dem Komma
+go
+
+select rand();		--eine zufällig Zahl zwischen 0 und 1
+select round(rand() * 100,0);
+go
+--------------------------------------------------------------------------------------
+--Zeichenfolgefunktionen
+select char(39);   --Hochkomma
+go
+
+select replace('Hustensaftschmuggler', 'saft','bier');  --ergibt hustenbierschmuggler
+select REPLICATE('Bier',10);   --ergibt bierbierbierbier...x10
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Namen und den Wohnort der Lieferanten in einer Spalte mit einem Abstand von 20 Leerzeichen
+select lname + space(20) + lstadt
+from lieferant;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Gesucht ist der zweite Buchstabe jedes Lieferantennamen
+select lname, substring(lname,2,1) as [zweiter Buchstabe]
+from Lieferant;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Der Chef möchte die Lieferantennummern statt mit einem L mit einem K beginnen lassen 
+--und der numerische Teil soll dreistellig sein und bei 101 beginnen
+select lnr from lieferant;
+go
+--numerischen Teil und alphanumerischen Teil trennen
+select substring(lnr,2,2)
+from lieferant;
+go
+--Ziffern in Zahlen umwandeln
+select cast(substring(lnr,2,2) as int)
+from lieferant;
+go
+--um 100 erhöhen
+select cast(substring(lnr,2,2) as int) + 100
+from lieferant;
+go
+--vor die Zahl das K setzen
+select 'K'+ cast(cast(substring(lnr,2,2) as int) + 100 as varchar(4))from lieferant;
+go
+
+--------------------------------------------------------------------------------------
+--Datums- und Zeitfunktion
+select getdate ();      
+select year(getdate());		--Ergebnis numerisch
+select month(getdate());		--Ergebnis numerisch
+select day(getdate());		--Ergebnis numerisch
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+select lnr, ldatum, day(ldatum), month(ldatum), year(ldatum)
+from lieferung;
+go
+----------------------------------------------------------------------------------------
+bestimmen welcher Wochentag der Wochenbeginn ist 					     
+--Beispiele:
+--für Deutschland
+select @@DATEFIRST;				--Woche beginnt am Montag
+--für USA
+set language us_english;			--Woche beginnt am Sonntag
+select @@DATEFIRST;
+--für Italien
+set language italian;			--Woche beginnt am Montag
+select @@DATEFIRST;
+--für USA
+set language us_english;			--Woche beginnt am Sonntag
+select @@DATEFIRST;
+--für Russland	
+set language russian;			--Woche beginnt am Sonntag
+select @@DATEFIRST;
+set language german;
+go
+--------------------------------------------------------------------------------------
+--Datumsfunktionen zum Berechnen von Datumswerten
+select datename(dw,getdate());			--zB. Mittwoch 	  alphanumerisch
+select datename(mm,getdate());			--zB. Juni 		    alphanumerisch
+select datename(YYYY,getdate());		--2022 			      alphanumerisch	
+select datepart(dw,getdate());			--1 			        numerisch
+select datepart(mm,getdate());			--6 			        numerisch
+select datepart(YYYY,getdate());		--2022 			      numerisch
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle im August 1990 durchgeführten Lieferungen 
+select * from lieferung
+where datepart(mm,ldatum) = 8
+and datepart(yyyy,ldatum) = 1990;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Zahlungstermin 37 Tage nach Lieferdatum 
+select lnr, anr, ldatum, dateadd(dd, 37, ldatum) as [Zahlung]
+from lieferung;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Anzahl der Monate seit Lieferung bis heute
+select lnr, anr, ldatum, datediff(mm,ldatum,getdate()) as [Anzahl Monate]
+from lieferung;
+go
+--------------------------------------------------------------------------------------
+--Datum Konvertieren 
+--nicht mit cast() konvertieren, da sonst unerwartete Ergebnisse auftreten
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Lieferdatum in einem deutschen Format (dd.mm.yyyy) darstellen
+select lnr, anr, cast(ldatum as char(19)) from lieferung;
+go
+--besser ist die Funktion convert
+select lnr, anr, convert(char(10),ldatum,104) from lieferung;
+go
+--------------------------------------------------------------------------------------
+--Gruppieren und Zusammenfassen von Daten
+--Aggregatfunktion
+--sie beziehen sich auf die Daten einer Spalte  der Tabelle (außer count)
+--und geben einen Zusammenfassungswert zurück
+--------------------------------------------------------------------------------------
+--das Ergebnis ist genau ein Wert
+--alle Aggregatfunktionen ignorieren Null- Marken 
+--------------------------------------------------------------------------------------
+--die fünf am häufigsten gebrauchten Aggregatfunktionen sind
+		--avg		(average) Durchschnitt der numerischen Spaltenwerte
+		--max		der größte Spaltenwert
+		--min		der kleinste Spaltenwert
+		--sum		die Summe der numerischen Spaltenwerte
+		--count	die Anzahl der Spaltenwerte
+--------------------------------------------------------------------------------------
+select sum(lmenge) as [Liefermenge gesamt],
+		max(lmenge) as [größte Liefermenge],
+		min(lmenge) as [kleinste Liefermenge],
+		avg(lmenge) as [durchschnittliche Liefermenge],
+		count(lnr) as [Anzahl Lieferung]
+from lieferung;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Die größte Liefermenge
+select max(lmenge) from lieferung;
+go
+--Wer ist das? (via Liefernummer)
+select max(lmenge), lnr from lieferung;
+go
+--------------------------------------------------------------------------------------
+--Alle Spalten in der Select- Liste die kein Argument einer Aggregatfunktion
+--sind müssen in einer group by- Klausel stehen
+select max(lmenge), lnr from lieferung
+group by lnr;
+go
+--das verändert die Fragestellung:
+--die größte Lieferung eines jeden Lieferanten
+--------------------------------------------------------------------------------------
+--Aggregatfunktion COUNT
+insert into lieferant values('L10','Meier', null, 'Erfurt');
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Anzahl der Lieferanten 
+select count(lnr) from lieferant; 
+go
+--immer richtig weil die PS Spalte als Argument verwendet wird
+select count(*) from lieferant;
+go
+--immer richtig  weil es in einer Tabelle keine leeren Datensätze gibt
+--------------------------------------------------------------------------------------
+--count (*) zählt die DS der angegeben Tabelle
+--------------------------------------------------------------------------------------
+select count(status) from lieferant;
+go
+--ist nicht richtig, weil die Spalte unbekannte Werte enthalten kann
+--------------------------------------------------------------------------------------
+--alle Aggregatfunktionen ignorieren NULL- Marken
+select count(lnr) FROM LIEFERANT; -- ergibt sechs Datensätze
+go
+select count(status) from lieferant; -- ergibt 5 Datensätze
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+-- Das größte Gesamtlagergewicht aller Artikel in Kilo
+select max(gewicht *0.001* amenge)
+from artikel;
+go
+
+select max gewicht *0.001* amenge
+from artikel;    --zeigt hier eine Spalte mit allen Gewichten an (0.001 menge kg)
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--die letzte Lieferung von 'A02' / where anr = ''
+select max(ldatum) from lieferung where anr = 'A02';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--die Anzahl der Lieferanten, die geliefert haben
+select count(lnr) from lieferung;
+go
+---falsch -- liefert die Anzahl der Lieferungen
+select count(distinct lnr) from lieferung; 
+go
+--richtig
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Gesucht ist der größte Status der Lieferanten am jeweiligen Wohnort...
+select lstad, max(status) 
+from lieferant,
+group by lstadt;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--wenn der durchschnittliche Status am jeweiligen Wohnort nicht kleiner als 15 ist
+select lstad, max(status) 
+from lieferant,
+where avg(status) > 15;
+go
+--falsch, in einer where- Klausel darf niemals eine Aggregatfunktion stehen
+--group by lstadt!      
+--Die Bedingung ist eine Bedingung für die Gruppe
+select lstadt, max(status) 
+from lieferant
+group by lstadt
+having avg(status) > 15;
+go
+--ohne die Aachner Lieferanten
+select lstadt, max(status) 
+from lieferant
+group by lstadt
+having avg(status) > 15 and lstadt <> 'Aachen'; 
+go
+--funktioniert ist aber unanständig
+select lstadt, max(status) 
+from lieferant
+where lstadt <> 'Aachen'
+group by lstadt
+having avg(status) > 15;
+go
+--------------------------------------------------------------------------------------
+insert into lieferung values ('L04', 'A03', 500, '10.06.2021');
+insert into lieferung values ('L04', 'A02', 500, '20.06.2021');
+insert into lieferung values ('L04', 'A01', 500, '01.06.2021');
+insert into lieferung values ('L04', 'A03', 500, convert(char(10),getdate(),104));
+go
+--------------------------------------------------------------------------------------
+--CUBE und ROLLUP	
+--ermöglichen zusammen mit Aggregatfunktionen erweiterte Zusammenfassungswerte
+--die Funktionen werden in der group- by Klausel verwendet
+--------------------------------------------------------------------------------------
+--Beispiel:
+--die Lieferantennummer, der Monat der Lieferung, das Jahr der Lieferung und
+--die Gesamtliefermenge aller Lieferanten mit einer Liefermenge 
+--von mindestens 100 Stück. 
+select lnr, datename(mm,ldatum) as [Monat], datepart(yyyy,ldatum) as [Jahr],
+sum(lmenge) as [Gesamtliefermenge]
+from lieferung
+where lmenge >= 100
+group by lnr, datename(mm,ldatum), datepart(yyyy,ldatum);
+go
+--------------------------------------------------------------------------------------
+--wir verwenden das ROLLUP --
+select lnr, datename(mm,ldatum) as [Monat], datepart(yyyy,ldatum) as [Jahr],
+sum(lmenge) as [Gesamtliefermenge]
+from lieferung
+where lmenge >= 100
+group by rollup(lnr, datename(mm,ldatum), datepart(yyyy,ldatum))
+order by 1,2,3;
+go
+--------------------------------------------------------------------------------------
+--weitere Zwischenaggregate mit CUBE
+select lnr, datename(mm,ldatum) as [Monat], datepart(yyyy,ldatum) as [Jahr],
+sum(lmenge) as [Gesamtliefermenge]
+from lieferung
+where lmenge >= 100
+group by cube(lnr, datename(mm,ldatum), datepart(yyyy,ldatum))
+order by 1,2,3;
+go
+--------------------------------------------------------------------------------------
+delete lieferung where lmenge = 500;
+go
+--------------------------------------------------------------------------------------
+--Rangfolgefunktionen
+--		RANK
+--		DENSE_RANK
+--		ROW_NUMBER
+--------------------------------------------------------------------------------------
+--Datensatz Beispiel aufnehmen--
+insert into lieferung values('L02','A04',200,'03.06.2022');
+go
+--------------------------------------------------------------------------------------
+--RANK
+--Beispiel:
+--die Rangfolge der Lieferanten anhand ihrer Gesamtliefermengen
+select lnr, rank() over(order by sum(lmenge) desc) as [Rang], 
+sum(lmenge) as [Gesamtliefermenge]
+from lieferung 
+group by lnr;
+go
+--Rang 1,2,2 und 4 werden angezeigt--
+--bei gleicher Rangfolge entsteht in der Spalte Rang eine Lücke
+--------------------------------------------------------------------------------------
+--DENSE_RANK
+select lnr, dense_rank() over(order by sum(lmenge) desc) as [Rang], 
+sum(lmenge) as [Gesamtliefermenge]
+from lieferung 
+group by lnr;
+go
+--Rang 1,2,2 und 3 werden angezeigt--
+--bei gleicher Rangfolge entsteht in der Spalte Rang keine Lücke.
+--------------------------------------------------------------------------------------
+--Zeilennummern mit ROW_NUMBER
+--Beispiel:
+--Alle Angaben zu den Lieferanten zuzüglich einer laufenden Nummer
+select row_number() over(order by lnr asc) as [laufende Nummer],
+lnr, lname, lstadt 
+from lieferant;
+go
+--Neue Spalte 'laufende Nummer' + von 1-6 sortiert-- 
+--------------------------------------------------------------------------------------
+--Das Ergebnis einer Abfrage  in eine Datenbanktabelle speichern
+--es kann gespeichert werden in eine permanente Tabelle
+--oder in temporäre Tabellen 
+--------------------------------------------------------------------------------------
+--temporäre Tabellen können lokal oder global sein
+--temporäre Tabellen können von jedem Datenbankbenutzer erstellt werden,
+--sie existieren, solange wie die Sitzung, die sie erstellt hat existiert 
+--------------------------------------------------------------------------------------
+--permanente Tabellen können nur von Benutzern mit der Berechtigung
+--create table... und das alte Schema... Berechtigung für das Schema
+--wo die Tabelle erstellt wird, erstellt werden
+--------------------------------------------------------------------------------------
+--1. permanente Tabelle
+select row_number() over(order by lnr asc) as [laufende Nummer],
+lnr, lname, lstadt 
+into lief_m_nr
+from lieferant;
+go
+--Befehl kann nur 1x ausgeführt werden, es wird eine Tabelle erstellt
+--------------------------------------------------------------------------------------
+--2. lokale, temporäre Tabelle
+select row_number() over(order by lnr asc) as [laufende Nummer],
+lnr, lname, lstadt 
+into #lief_m_nr
+from lieferant;
+go
+--diese Tabelle ist nach dem Neustart weg--
+--Sitzung erstellt Tabelle
+--------------------------------------------------------------------------------------
+--3. globale, temporäre Tabelle
+select row_number() over(order by lnr asc) as [laufende Nummer],
+lnr, lname, lstadt 
+into ##lief_m_nr
+from lieferant;
+go
+--------------------------------------------------------------------------------------
+--Tabellenvariablen
+--diese existieren für die Zeitdauer eines Stabels
+declare @tab table([Laufende Nummmer] int,
+Lieferantennummer char(3),
+Namen varchar(100),
+Ort varchar (100));
+go
+--------------------------------------------------------------------------------------
+insert into @tab select row_number() over(order by lnr asc) as [Laufende Nummer],
+lnr, lname, lstadt
+from lieferant;
+go
+--------------------------------------------------------------------------------------
+select * from @tab;
+go
+--der gesamte Block muss ausgeführt werden--
+--------------------------------------------------------------------------------------
+--Mengenoperatoren aus der Mengenmathematik
+--Addition
+--Minus
+--Schnittmenge
+--------------------------------------------------------------------------------------
+--Union
+--Alle Orte, die Wohnorte und Lagerorte sind 
+select lstadt from lieferant 
+union
+select astadt from artikel;
+go
+--------------------------------------------------------------------------------------
+--beide Abfragen links und rechts vom Operator müssen die gleiche Anzahl
+--von Spalten haben und die Spalten müssen zueinander kompatibel sein
+--Das nennt man UNIONKOMPATIBILITÄT
+--------------------------------------------------------------------------------------
+--Formatieren des Ergebnisses
+select lstadt as [Wohn- und Lagerorte] from lieferant
+union
+select astadt from artikel
+order by lstadt desc;
+go
+--------------------------------------------------------------------------------------
+--Union eliminiert doppelte Datensätze im Ergebnis (wie DISTINCT)
+--das kann ich ausschalten
+select lstadt as [Wohn- und Lagerorte] from lieferant
+union all
+select astadt from artikel
+order by lstadt desc;
+go
+--------------------------------------------------------------------------------------
+--EXCEPT 
+--entspricht einer Subtraktion -- gibt sämtliche Datensätze der Anfrage
+--links vom Operator zurück, die nicht in der Abfrage rechts vom Operator vorkommen
+--Beispiel: 
+--Wohnort von Lieferanten, wo keine Artikel gelagert sind
+select lstadt as [Wohn- ohne Artikel] from lieferant
+except
+select astadt from artikel;
+go
+
+--------------------------------------------------------------------------------------
+--INERSECT
+--gibt sämtliche Datensätze zurück die sowohl in Abfrage rechts im Operator
+--als auch in der Ablage links vom Operator vorkommen. 
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Ortsnamen wo Lieferanten wohnen und auch Artikel gelagert werden
+select lstadt as [Orte] from lieferant
+intersect
+select astadt from artikel;
+go
+--------------------------------------------------------------------------------------
+--Unterabfragen
+--einfache Unterabfragen
+--------------------------------------------------------------------------------------
+--Beispiel:
+--gesucht sind die Nummern, Namen und Wohnorte der Lieferanten 
+--die dort wohnen wo Artikel A04 lagert 
+select astadt from artikel where anr = 'A04';
+go
+--wo lagert A04
+select lnr, lname, lstadt;
+go
+--wer wohnt dort
+from lieferant
+where lstadt = (select astadt from artikel where anr = 'A04');
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--gesucht sind die Nummern und Namen der Artikel, die bereits
+--geliefert wurden
+select anr from lieferung;
+go
+--welche Artikel wurden geliefert
+select anr, aname
+from Artikel 
+where anr in(select anr from lieferung); 
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Welche Hamburger Lieferanten haben nach dem 01.08.90 rote und blaue
+
+--Artikel geliefert (Lieferant, Artikel, Farbe, Datum...)			        
+select * from lieferant where lstadt like 'Hamburg';
+
+--L01 Schmidt und L04 Clark = Lieferanten aus Hamburg 
+select * from lieferung where ldatum >= '01.08.90';
+go
+
+--Zeigt 8 Bestellungen an die seit 01.08.90 getätigt wurden sind
+select * from artikel where farbe in('rot', 'blau');
+go
+
+--Zeigt 5 Bestellungen an      
+--------------------------------------------------------------------------------------
+select * 
+from lieferant 
+where lstadt = 'Hamburg'
+and lnr in(select lnr from lieferung where ldatum >'01.08.90'
+and anr in(select anr from artikel where farbe in('rot','blau')));
+go
+
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Angaben zu den Lieferanten deren Statuswert über 
+--den durchschnittlichen Statuswert der Lieferanten liegt, die
+--in der gleichen Stadt wohnen wie Lieferant L02
+--------------------------------------------------------------------------------------
+--1. Wo wohnt L02?
+select lstadt from lieferant where lnr = 'L02';
+go
+--2. Was ist der durchschnittliche Statuswert?
+select avg (status) as [Status]
+from lieferant 
+where lstadt = (select lstadt from lieferant where lnr = 'L02');
+go
+--3. Lieferanten mit Statuswert > als 20
+select * from lieferant 
+where status > (select avg(status) from lieferant
+where lstadt = (select lstadt from lieferant where lnr = 'L02'));
+go
+---------------------------------------------------------------------
+--Beispiel:
+--Nummern und Namen der Artikel, die im August 1990 von Lieferanten geliefert wurden,
+--die mindestens 3x geliefert haben 
+--------------------------------------------------------------------------------------
+--1. Frage: Welche Lieferanten haben mindestens 3x geliefert?
+select lnr from lieferung group by lnr having count (lnr) >= 3;
+go
+--2. Frage: Haben diese Lieferanten im August 1990 geliefert?
+select anr from lieferung 
+where datepart(mm,ldatum) = 8 and datepart(yyyy,ldatum) = 1990 
+and lnr in (select lnr from lieferung group by lnr having count (lnr) >= 3);
+go
+--3. Frage: Welche Nummer und Namen haben die Artikel?
+select aname, anr from artikel
+where anr in (select anr from lieferung 
+where datepart(mm,ldatum) = 8 and datepart(yyyy,ldatum) = 1990 
+and lnr in (select lnr from lieferung group by lnr having count (lnr) >= 3));
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Gesucht ist das Lieferdatum der Lieferungen wo Hamburger Lieferanten 
+--rote und blaue Artikel geliefert haben
+--Wann wurde geliefert?
+select ldatum from lieferung;
+go
+--Wer liefert in Hamburg?
+select lnr from lieferant where lstadt = 'Hamburg';
+go
+--Gesucht sind alle roten und blauen Artikel
+select anr from artikel where farbe in ('rot','blau'));
+go
+--Zusammenfassung ohne Zeitstempel
+select ldatum from lieferung
+where lnr in(select lnr from lieferant where lstadt = 'Hamburg')
+and anr in(select anr from artikel where farbe in('rot','blau'));
+go
+--Zusammenfassung mit Zeitstempel
+select convert(char(10),ldatum,104) as [Lieferdatum] from lieferung
+where lnr in(select lnr from lieferant where lstadt = 'Hamburg')
+and anr in(select anr from artikel where farbe in('rot','blau'));
+go
+--------------------------------------------------------------------------------------
+insert into lieferung values('L04','A04',500,'09.08.90');
+go
+insert into lieferung values('L04','A03',500,'09.08.90');
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Gesucht sind die Namen und Nummern der Artikel deren letzte Lieferung
+--an dem Tag war, als auch Artikel A02 zuletzt geliefert wurde.
+select aname, anr 
+from Artikel
+where anr in (select anr from lieferung
+group by anr having max(ldatum) = (select max(ldatum)
+from lieferung where anr = 'A02';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Die Nummern und Namen der Lieferanten die jeden Artikel 
+--geliefert haben
+Select lnr, lname from Lieferant
+where lnr in(select lnr from lieferung
+group by lnr
+having count(distinct anr) = (select count(anr) from Artikel));
+go
+-------------------------------------------------------------------------------------
+--Beispiel:
+--Nummern und Namen von Artikel die mindestens zweimal geliefert wurden, von
+--Lieferanten die ebenfalls mehr als zweimal geliefert haben
+select anr, aname 
+from artikel
+where anr in (select anr 
+			from lieferung
+			where lnr in(select lnr from lieferung group by lnr having count(lnr) > 2)
+			and anr in (select anr from lieferung group by anr having count(anr) >=2));
+go
+--------------------------------------------------------------------------------------
+delete lieferung where lmenge = 500;
+go
+--------------------------------------------------------------------------------------
+--Unterabfragen in der SELECT- Liste
+select anr, aname, gewicht,
+gewicht -(select avg(gewicht) from artikel) as [Abweichung vom Durchschnitt]
+from artikel;
+go
+--------------------------------------------------------------------------------------
+--Korrelierte Unterabfragen
+--langsamste Art von Unterabfragen 
+--fast jede korrelierte Unterabfrage kann in eine einfache Unterabfrage 
+--oder in einen Join umgewandelt werden
+--------------------------------------------------------------------------------------
+--im Gegensatz zu einfachen Unterabfragen beginnt eine korrelierte
+--Unterabfrage mit der äußeren Abfrage
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Lieferanten, die mindestens dreimal geliefert haben
+select * from lieferant as a 
+where 3 <= (select count(lnr)
+			from lieferung as b
+			where a.lnr = b.lnr);
+go
+--------------------------------------------------------------------------------------
+select * from lieferant
+where 3 <= (select count(lnr)
+			from lieferung
+			where lieferant.lnr = lieferung.lnr);
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Alle Angaben zu Lieferanten die geliefert haben 
+select * 
+from lieferant
+where exists (select *
+			from lieferung
+			where lieferant.lnr = lieferung.lnr);
+go
+--------------------------------------------------------------------------------------
+--JOIN: 
+--hinter jedem join steht ein kartesisches Produkt; inner join and outer join
+--ein kartesisches Produkt verknüpft jeden DS der einen Tabelle mit ALLEN DS der
+--anderen Tabelle verknüpft.
+select * from lieferant cross join lieferung;		--Aktuell
+go
+
+select *from lieferant, lieferung;			--Uralt aber wörks
+go
+--------------------------------------------------------------------------------------
+
+select *
+from lieferant cross join lieferung cross join artikel
+cross join lieferant as a cross join lieferung as b cross join artikel as c;
+go
+--129600 Ergebnisse
+--------------------------------------------------------------------------------------
+--Tabelle Speeren!!!
+select * from lieferant with (tablock, holdlock)
+go
+--------------------------------------------------------------------------------------
+--INNER JOIN
+--liefert alle Datensätze der an join beteiligten Tabellen die die 
+--Verknüpfungsbedingungen erfüllen
+--------------------------------------------------------------------------------------
+--Beispiel:
+---Lieferanten mit ihren Lieferungen
+select * 
+from lieferant join lieferung on lieferant.lnr = lieferung.lnr;
+go
+--------------------------------------------------------------------------------------
+select * 
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go
+--im dargestellten Ergebnis besteht eine Redundanz an Tabellenspalten (lnr)
+--wenn diese entfernt wird sprechen wir über eine NATURAL Join
+--------------------------------------------------------------------------------------
+select a.lnr, lname, status ,lstadt, anr, lmenge,ldatum
+from lieferant as a join lieferung as b on a.lnr =b.lnr;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Die Lieferungen Hamburger Lieferanten im August 1990
+select a.lnr, lname, status ,lstadt, anr, lmenge,ldatum
+from lieferant as a join lieferung as b on a.lnr =b.lnr
+where lstadt ='Hamburg'
+and datepart (mm, ldatum) = 8 and datepart (yyyy,ldatum)=1990;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--alte Syntax
+select a.lnr, lname, status ,lstadt, anr, lmenge,ldatum
+from lieferant as a, lieferung as b
+where a.lnr = b.lnr 
+and lstadt ='Hamburg'
+and datepart (mm, ldatum) = 8 and datepart (yyyy,ldatum)=1990;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Nummer und Namen der Lieferanten die geliefert haben
+select a.lnr, lname
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go
+--Im Ergebnis erscheinen 12 Datensätze. Einige sind identisch
+--Relevante DS werden abgerufen aber nicht angezeigt
+--------------------------------------------------------------------------------------
+select *
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--aus der logischen Menge des Join zwischen Lieferanten und Lieferung
+--lassen ich mir nur die Spalten lnr und lname anzeigen
+--------------------------------------------------------------------------------------
+--Wie entferne ich die doppelten DS  
+--mit DISTINCT
+select distinct a.lnr, lname
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--Wenn bei einem Join nur die Spalten einer der am Join beteiligten 
+--Tabellen angezeigt werden, dann benötigt ich DISTINCT
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Nummern, Name und Lieferdatum der roten und blauen Artikel
+--die von Lieferanten aus Ludwigshafen geliefert wurden.
+select a.anr, aname,ldatum
+from Artikel as a join lieferung as b on a.anr = b.anr	
+	join lieferant as c on b.lnr =c.lnr
+	where farbe in('rot','blau')
+	and lstadt ='Ludwigshafen';
+go
+--------------------------------------------------------------------------------------
+--Join eignen sich hervorragend für Unterabfragen in der
+--FROM-KLAUSEL
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Nummern, Namen und die Anzahl ihrer Lieferungen für die Lieferanten 
+--die mindestens 2x geliefert haben.
+select a.lnr,lname,anz as [Anzahl Lieferung]
+from lieferant as a join (select lnr, count (*) as [anz]
+from lieferung
+group by lnr) as b on a.lnr = b.lnr
+where anz >= 2;
+go
+--------------------------------------------------------------------------------------
+select a.lnr,lname,anz as [Anzahl Lieferung]
+from lieferant as a join (select lnr, count (*) as [anz]
+from lieferung
+group by lnr) as b on a.lnr = b.lnr
+where anz >= 2;
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Nummern, Name und Liefernummer Liefername der Lieferanten die geliefert haben.
+--1. korrelierte Unterabfrage
+select lnr,lname
+from lieferant
+where exists (select * from lieferung
+				where lieferant.lnr = lieferung.lnr);	-- langsam
+go
+--2. einfache  Unterabfrage
+select lnr,lname
+from lieferant
+where lnr (select lnr from lieferung;	-- schneller
+go
+--------------------------------------------------------------------------------------
+select distinct a.lnr,lname
+from lieferant as a join lieferung as b
+on a.lnr = b.lnr;				-- am schnellsten
+go
+--hinter jedem JOIN steht ein kartesisches Produkt
+--darum ist folgend Anweisung falsch!!!
+--------------------------------------------------------------------------------------
+--Beispiel:
+--die Nummer und Namen der Lieferanten die noch nie geliefert haben
+select distinct a.lnr,lname
+from lieferant as a join lieferung as b
+on a.lnr <> b.lnr;
+go
+--das liefert ein falsches Resultat
+--------------------------------------------------------------------------------------
+--bei näherer Betrachtung enthält das Ergebnis 48 DS. 60 DS des 
+--kartesischen Produktes minus 12 DS die logisch zusammengehören
+select *
+from lieferant as a join lieferung as b
+on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--die oben genannte Fragenstellung kann man trotzdem mit
+--einem JOIN beantworten.
+--------------------------------------------------------------------------------------
+--Es wird ein OUTER Join benötigt --> die Fragestellung wird etwas später 
+--wieder aufgenommen...
+--------------------------------------------------------------------------------------
+--Aufnehmen eines Testdatensatz --> eine Lieferung für die es keinen 
+--Lieferanten gibt
+--------------------------------------------------------------------------------------
+--das lässt das Datenbankmanagement (DBMS)nicht zu --> referentielle Integrität
+--Darum müssen wir tricksen
+---------------------------------------------------------
+alter table lieferung drop constraint lnr_fs;
+go
+insert into lieferung values ('L33','A05',500, getdate());
+go
+---------------------------------------------------------
+alter table lieferung with nocheck;
+go
+add constraint lnr_fs foreign key(lnr) references lieferant(lnr);
+go
+--------------------------------------------------------------------------------------
+--linker OUTER JOIN
+--Beispiel:
+--Gesucht sind alle Lieferanten mit ihren Lieferungen und auch die Lieferanten
+--die noch nicht geliefert haben
+select * 
+from lieferant as a right join lieferung as b on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--rechter OUTER join 
+--Beispiel:
+--gesucht sind alle Lieferanten mit ihren Lieferungen und die Lieferungen 
+--denen kein lieferant zugeordnet werden kann
+select *
+from lieferant as a right join lieferung as b on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--FULL OUTER JOIN
+--Beispiel:
+--gesucht sind alle Lieferanten mit ihrer Lieferung, weiterhin
+--Lieferanten die noch nicht geliefert haben und die 
+--Lieferung denen kein Lieferant zugeordnet werden kann.
+select * 
+from lieferant as a full join lieferung as b on a.lnr = b.lnr;
+go
+--------------------------------------------------------------------------------------
+--Also zurück zur Frage: Nummern und Namen der Lieferanten 
+--die noch nicht geliefert haben
+select a.lnr, lname  
+from lieferant as a left join lieferung as b on a.lnr = b.lnr
+where b.lnr is null;
+go
+--------------------------------------------------------------------------------------
+--1.
+select * from lieferant where lstadt = 'Ludwigshafen';
+go
+--2.
+select distinct a.anr, aname, astadt  
+from artikel as a left join lieferung as b on a.anr = b.anr;
+go
+--------------------------------------------------------------------------------------
+--Daten bearbeiten 
+--Insert: Einen Datensatz in eine Tabelle einfügen
+--1. in der Reihenfolge der Tabellendefinition
+insert into lieferant values ('L20','Krause',5,'Erfurt');
+go
+--2. geändert Reihenfolge
+insert into lieferant (lstadt,lnr,status,lname) values ('Weimar','L21',5,'Schulze');
+go
+--------------------------------------------------------------------------------------
+select * from lieferant;	-- unbekannte Werte
+go
+--------------------------------------------------------------------------------------
+insert into lieferant values ('L22','Maria',5,null);
+insert into lieferant (lnr,lname)values ('L23','Horst');
+go
+--------------------------------------------------------------------------------------
+--das geht nur wenn für alle Spalten, die nicht angegeben werden, NULL-
+--Marken zulassen sind.
+--------------------------------------------------------------------------------------
+--BLOB laden 
+create table medien
+(nr int not null,
+bild varbinary (max)null,
+typ varchar (5)null);
+go
+--------------------------------------------------------------------------------------
+--Bild laden
+insert into medien values
+(1,(select * from openrowset(bulk 'c:\xml\colonel.jpg', single_blob) as c) , '.jpg');
+go
+--------------------------------------------------------------------------------------
+--weitere Möglichkeiten zum Massenladen
+select *
+into lieferung_hist
+from lieferung;
+go
+
+select * from lieferung_hist;
+go
+
+insert into lieferung_hist select * from lieferung;
+go
+
+select * from lieferung_hist;
+go
+--------------------------------------------------------------------------------------
+--Datenänderungen mitschneiden
+create table spion
+(lfdnr int,
+wann datetime,
+wer sysname,
+was varchar (20),
+primaerschlüssel char (3),
+neuer_Wert char (100),
+alter_Wert char (100));
+go
+--------------------------------------------------------------------------------------
+insert into lieferant
+output 1,getdate(), suser_name(),'Insert', inserted.lnr, inserted.lnr, null
+   into spion
+   values ('L24','Kummer',5,'Weimar');
+go
+------------------------------------------------------------
+--Ändern von Daten
+--Daten werden geändert mit der UPDATE Anweisung
+--es können ein oder mehrere Spaltenwerte einer oder mehrerer Datensätze
+--geändert werden
+--eine Update-Anweisung ohne WHERE-Klausel macht keinen Sinn!!!
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Die Maria zieht nach Gotha
+update lieferant
+set lstadt ='Gotha'
+where lnr = 'L22';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Der Status der Lieferanten die mehr als zwei Mal geliefert 
+--haben soll und 5 Punkte erhöht werden
+update lieferant
+set status = status +5
+where lnr in(select lnr
+from lieferung group by lnr having count (lnr) >2);
+go
+--------------------------------------------------------------------------------------
+--mit OUTPUT arbeiten
+--bei einer Update Anweisung werden zwei logische Tabellen gebildet
+--inserted --> mit dem neuen geänderten Wert
+--deleted --> mit altem umgeändertem Wert
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Der Lieferant L23 zieht nach Urbich (weil Weltstadt)
+update Lieferant 
+set lstadt = 'Urbich'
+output 2, getdate(), suser_name(), 'Update', inserted.lnr, inserted.lstadt, deleted.lstadt
+into spion
+where lnr ='L23';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Der Lieferant L23 zieht plötzlich nach Dittelstedt
+update Lieferant 
+set lstadt = 'Dittelstedt'
+output 3, getdate(), suser_name(), 'Update', inserted.lnr, inserted.lstadt, deleted.lstadt
+into spion
+where lnr ='L23';
+go
+--------------------------------------------------------------------------------------
+--DELETE: löscht einen oder mehrere Datensätze
+--sollte _NICHT_ ohne WHERE verwendet werden
+--------------------------------------------------------------------------------------
+--Beispiel:
+--L23 verlässt fluchtartig die Firma
+delete lieferant
+output 4,getdate(),suser_name(),'Delete',deleted.lnr,null,deleted.lnr into spion
+where lnr = 'L23';
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+--alle lieferanten (außer L05) die nicht geliefert haben sollen gelöscht werden
+delete lieferant
+where lnr not in (select lnr from lieferant)
+and lnr <> 'L05';
+go
+--------------------------------------------------------------------------------------
+--Löschen von Datensätzen einer Tabelle ohne Protokollierung
+truncate table lieferung;
+go
+--------------------------------------------------------------------------------------
+--Installieren von SQL Server
+--das Produkt ist in der Express-, Standard-, Enterprise-, Developer- und –
+--Evaluierungsversion
+--erhältlich.
+--Die Express Edition ist kostenfrei.
+		 -- es gibt Einschränkungen in der Größe der Datenbankdateien und es gibt
+		 --keine Möglichkeit der Hohen Verfügbarkeit, der Automatisierung und der Überwachung
+--Die Evaluierungsversion entspricht der Enterprise Edition. Alle Funktionen sind verfügbar.
+--Läuft in der Regel nach 180 Tagen ab.
+--Die Developer Edition entspricht der Enterprise Edition, darf aber nur für die Entwicklung eingesetzt werden
+--Die Standard- Edition unterstützt nicht alle Funktionen der hohen Verfügbarkeit und des Audits.
+
+--SQL Server unterstützt RAID 1, RAID 5, RAID 10
+--Arbeiten Sie mit dezidierten Platten --> Datendateien und Protokolldateien niemals auf ein Device
+
+--Die Dienstkonten sollten nicht die lokalen (vorinstallierten) sein. Auch wenn der SQL Server auf einem lokalen
+--(ohne Domäne) Rechner installiert wird, sollten Konten erstellt werden mit einem sicheren Kennwort
+
+--Installieren Sie nur die Dienste, die Sie unbedingt brauchen.
+
+-- Wir wollen den SQL Server 2016 Enterprise Edition ohne grafische Oberfläche installieren.
+-- es ist jeweils ein Device für die Datenbankdateien und die Datenbankprotokolldateien vorhanden.
+-- das Gleiche gilt für die TEMPDB
+--------------------------------------------------------------------------------------
+--master-Datenbank	
+--Zeichnet alle Informationen auf Systemebene für eine Instanz von SQL Server auf.
+--------------------------------------------------------------------------------------
+--msdb-Datenbank	
+--Wird vom SQL Server-Agent verwendet, um Termine für Warnungen und Aufträge zu planen.
+--------------------------------------------------------------------------------------
+--tempdb-Datenbank	
+--Ein Arbeitsbereich zum Speichern von temporären Objekten oder Zwischenresult-sets.
+--------------------------------------------------------------------------------------
+--model-Datenbank	
+--Wird als Vorlage für alle Datenbanken verwendet, die auf der Instanz von SQL Server erstellt wurden. 
+--Änderungen, die an der model -Datenbank vorgenommen werden, z. B. an der
+--Datenbankgröße, der -sortierung, am Wiederherstellungsmodell und an anderen 
+--Datenbankoptionen, werden auf jede Datenbank angewendet, die anschließend erstellt
+--wird
+--------------------------------------------------------------------------------------
+--Ressourcendatenbank	
+--Eine schreibgeschützte Datenbank, die Systemobjekte enthält, die in SQL Server enthalten sind. 
+--Systemobjekte werden physisch in der Ressourcendatenbank gespeichert, logisch jedoch 
+--im sys -Schema jeder Datenbank angezeigt.
+--------------------------------------------------------------------------------------
+--Datenbanken Erstellen und Verwalten
+--Typen 
+--Systemdatenbanken (master, msdb, tempdb, model, distribution)
+
+--Transaktion [SQL Buch Seite 138/139 + Checkpoint Bild]
+--ist eine unteilbare Einheit die entweder ganz oder gar nicht ausgeführt wird
+--------------------------------------------------------------------------------------
+--Beispiel: (kann hier nicht in dieser DB simuliert werden) 
+--Maxi hat für Falk ein Programm geschrieben für das Homebanking
+--Falk will 5k Euro von seinem Girokonto auf sein Sparkonto überweisen
+
+--T1 Beginn Transaction 
+update gk
+set betrag = betrag - 5000
+where ktnr = 0815				
+--Commit Transaction
+---------------------------SA
+--T2 Beginn Transaction
+update sk
+set betrag = betrag - 5000
+where ktnr = 0817				
+--Commit Transaction
+--------------------------------------------------------------------------------------
+--Besser ist: 
+--T Beginn Transaction Banane 
+update gk						
+set betrag = betrag - 5000
+where ktnr = 0815				
+---------------------------SA
+update sk						
+set betrag = betrag - 5000
+where ktnr = 0817				
+--T Commit Transaction Banane
+--------------------------------------------------------------------------------------
+--Datenbank erstellen								       
+create database standard;  --als 1. Ausführen					          
+exec sp_helpdb standard;   --als 2. ausführen
+--------------------------------------------------------------------------------------
+create table lieferant 
+(
+lnr char(3) not null,
+lname nvarchar(299) not null, 
+status tinyint null,
+lstadt nvarchar(299) null
+);	
+go
+--------------------------------------------------------------------------------------
+create table artikel
+(
+anr char(3) not null, 
+aname varchar(200) not null,
+farbe varchar(10) null,
+gewicht decimal(5,2) null,
+astadt nvarchar(200) not null,
+amenge int not null
+);
+go
+--------------------------------------------------------------------------------------
+create table lieferung
+(
+lnr char(3) not null,
+anr char(3) not null,
+lenge int not null,
+ldatum datetime not null
+);
+go
+
+exec sp_help 'lieferant';
+exec sp_help 'lieferung';
+exec sp_help 'artikel';
+go
+--alle taktisch technischen Daten im Überblick
+--------------------------------------------------------------------------------------
+select * from lieferant;
+select* from lieferung;
+select * from artikel;
+go
+--Tabellen sind allerdings noch leer :P
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--Tabelle Lieferant
+insert into dbo.lieferant values('L01', 'Schmidt', 20, 'Hamburg');
+insert into dbo.lieferant values('L02', 'Jonas', 10, 'Ludwigshafen');
+insert into dbo.lieferant values('L03', 'Blank', 30, 'Ludwigshafen');
+insert into dbo.lieferant values('L04', 'Clark', 20, 'Hamburg');
+insert into dbo.lieferant values('L05', 'Adam', 30, 'Aachen');
+go
+--------------------------------------------------------------------------------------
+--Tabelle Artikel
+insert into dbo.artikel values('A01', 'Mutter', 'rot', 12, 'Hamburg', 800);
+insert into dbo.artikel values('A02', 'Bolzen', 'grün', 17, 'Ludwigshafen', 1200);
+insert into dbo.artikel values('A03', 'Schraube', 'blau', 17, 'Mannheim', 400);
+insert into dbo.artikel values('A04', 'Schraube', 'rot', 14, 'Hamburg', 900);
+insert into dbo.artikel values('A05', 'Nockenwelle', 'blau', 12, 'Ludwigshafen', 1300);
+insert into dbo.artikel values('A06', 'Zahnrad', 'rot', 19, 'Hamburg', 500);
+go
+--------------------------------------------------------------------------------------
+--Tabelle Lieferung
+insert into dbo.lieferung values('L01', 'A01', 300, '18.05.90');
+insert into dbo.lieferung values('L01', 'A02', 200, '13.07.90');
+insert into dbo.lieferung values('L01', 'A03', 400, '01.01.90');
+insert into dbo.lieferung values('L01', 'A04', 200, '25.07.90');
+insert into dbo.lieferung values('L01', 'A05', 100, '01.08.90');
+insert into dbo.lieferung values('L01', 'A06', 100, '23.07.90');
+insert into dbo.lieferung values('L02', 'A01', 300, '02.08.90');
+insert into dbo.lieferung values('L02', 'A02', 400, '05.08.90');
+insert into dbo.lieferung values('L03', 'A02', 200, '06.08.90');
+insert into dbo.lieferung values('L04', 'A02', 200, '09.08.90');
+insert into dbo.lieferung values('L04', 'A04', 300, '20.08.90');
+insert into dbo.lieferung values('L04', 'A05', 400, '21.08.90');
+go
+-----------------------------------------------------------------------------------
+--Einschränkungen für Tabellen erstellen 
+--Primary-Key unique, foreign key, default, check 
+--Sie dienen dazu Integritätsbedingungen innerhalb der Datenbank durchzusetzen
+--diese Einschränkungen können für Tabellen mit und ohne Datensätze erstellt werden
+--sind in der Tabellen bereits Datensätze erhalten, dann müssen 
+--sie die Einschränkung erfüllen
+--einige Einschränkungen (primary key, unique) erzeugen Indizes
+-----------------------------------------------------------------------------------
+--Primärschlüssel
+alter table lieferant add constraint lnr_pk primary key(lnr);
+go
+--standardmäßig erzeugt der Primärschlüssel einen clustered (gruppierten)
+--Index
+-----------------------------------------------------------------------------------
+--Beispiel
+insert into lieferant values('L01','Kummer',5,'Erfurt'); --L01 schon vorhanden
+insert into lieferant values('L10','Kummer',5,'Erfurt'); --geht
+go
+-----------------------------------------------------------------------------------
+--Unique
+--Vorbereitung [NEUE SPALTE] 
+alter table lieferant add vers_nr varchar(20) null;
+go
+
+select * from lieferant;
+go
+--derzeit nur eine leere Spalte vers_nr
+update lieferant set vers_nr = 'ABC-12345-CC' where lnr = 'L01';
+update lieferant set vers_nr = 'DEF-12345-CC' where lnr = 'L02';
+update lieferant set vers_nr = 'GHI-12345-CC' where lnr = 'L03';
+update lieferant set vers_nr = 'JKL-12345-CC' where lnr = 'L04';
+update lieferant set vers_nr = 'MNO-12345-CC' where lnr = 'L05';
+update lieferant set vers_nr = 'PQR-12345-CC' where lnr = 'L10';
+update lieferant set vers_nr = 'ABC-12345-CC' where lnr = 'L01';
+go
+
+select * from lieferant;
+go 
+
+--Spalte vers_nr nun befüllt
+alter table lieferant add constraint versnr_unq unique(vers_nr);
+go 
+-----------------------------------------------------------------------------------
+--Beispiel:
+insert into lieferant values('L11','Meier',5,'Erfurt','ABC-12345-CC'); 
+go 
+--Fehler
+insert into lieferant values('L11','Meier',5,'Erfurt','ABC-12345-XX');
+go 
+-- richtige Anfrage
+exec sp_help 'lieferant';
+go 
+-----------------------------------------------------------------------------------
+--für eine Tabelle kann es mehr als nur eine UNIQUE Einschränkungen geben
+--UNIQUE lässt NULL- Marken zu (aber nur eine)
+--Unique erstellt standardmäßig einen nonclustered Index
+-----------------------------------------------------------------------------------
+--Spalte vers_nr löschen
+--1. das Contraint löschen
+alter table lieferant drop constraint versnr_unq;
+go 
+--2. Tabellenspalte löschen 
+alter table lieferant drop column vers_nr;
+go 
+
+select * from lieferant
+-----------------------------------------------------------------------------------
+--DEFAULT 
+--Wenn für eine Spalte kein Wert angegeben wird soll ein Default Wert gelten
+--Auf Primärschlüsselspalten und Unique Spalten werden keine Defaults erstellt
+alter table lieferant add constraint lstadt_def default 'Gotha' for lstadt;
+go 
+-----------------------------------------------------------------------------------
+--Beispiel:
+insert into lieferant values('L12','Krause',5,default);
+insert into lieferant(lnr,lname,status) values('L13','Richter',5);
+go 
+
+select * from lieferant;
+go 
+-----------------------------------------------------------------------------------
+--wenn eine Null- Marke aufgenommen werden muss, dann müssen Sie diese
+--explizit angeben
+insert into lieferant values('L14','Müller',5,null);
+go
+-----------------------------------------------------------------------------------
+--Check- (Einschränkung) 
+--mit dieser Einschränkung können gültige Werte für eine Tabellenspalte
+--festgelegt werden
+--pro Spalte kann es keine, eine oder mehrere Check- Einschränkungen geben
+--		-Sie sollten sich nicht gegenseitig blockieren oeder aufheben
+--Check- Einschränkungen können sich auch auf andere Spalten der Tabelle beziehen
+-----------------------------------------------------------------------------------
+--Beispiel
+--Im Datensatz befindet sich ein Wert 'Name' und ein Wert 'Vorname'
+--		-Es soll sichergestellt werden, dass wenn nur der Vorname 
+--		-angegeben wurde, das Einfügen des Datensatzes abgewiesen wird
+--Die Lieferantennamen sollen mit einem Buchstaben beginnen
+alter table lieferant add constraint lname_chk check(lname like '[A-Z]%');
+go 
+-----------------------------------------------------------------------------------
+insert into lieferant values('L15','6Rest',5,'Erfurt');
+go --wird abgewiesen, da Name des Lieferanten mit einer Ziffer beginnt
+insert into lieferant values('L15','Rest',5,'Erfurt');
+go --funktioniert
+-----------------------------------------------------------------------------------
+--Beispiel:
+--Der Statuswert darf nur zwischen 0 und 100 liegen
+alter table lieferant add constraint status_chk check((status between 0 and 100);)
+insert into lieferant values('L17','Fett',105,'Erfurt');
+go 
+
+alter table lieferant with nocheck add constraint status_chk check(status between 0 and 100);
+go
+-- wenn das 'insert' ausversehen vor dem 'alter table' ausgeführt wurde machen wir 
+--ein 'with no check', danach erneut das insert ausführen
+------------------------------------------------------------------------------------
+--Fremdschlüssel (foreign key)
+alter table lieferung add constraint lnr_fk foreign key(lnr)
+					 references lieferant(lnr)
+					 on update cascade;
+go 
+
+alter table lieferung add constraint anr_fk foreign key(lnr)
+					 references artikel.lnr
+					 on update cascade;
+go 
+-- dies erzeugt einen Fehler, weil die Tabelle 'Artikel' noch keinen Primärschlüssel besitzt
+------------------------------------------------------------------------------------
+alter table artikel add constraint anr_pk primary key(anr);
+go 
+
+alter table lieferung add constraint anr_fk foreign key(anr)
+					 references artikel(anr);
+go 
+------------------------------------------------------------------------------------
+--Primärschlüssel für die Tabelle Lieferung+
+--Zusammengesetzter Primärschlüssel aus dem Spalten lnr, anr, ldatum
+alter table lieferung add constraint lief_pk primary key(lnr, anr, ldatum);
+go 
+
+--Referenzielle Integrität
+--hat was mit foreign key zu tun
+
+--Beispiel:
+insert into lieferung values('L44','A02',500,getdate());
+go 
+--Fehler wegen refentieller Intigrität, den Lieferanten L44
+--gibt es nicht
+
+-----------------------------------------------------------------------------------
+--Operationsregel kaskadierendes Ändern zwischen Lieferanten und Lieferung 
+
+select * from lieferant as a join lieferung as b on a.lnr = b.lnr
+where a.lnr = 'L04';
+go 
+--leere Menge, weil L04 nicht mehr vorhanden ist
+------------------------------------------------------------------------------------
+update lieferant set lnr = 'L06' where lnr = 'L04';
+go 
+------------------------------------------------------------------------------------
+select * from lieferant as a join lieferung as b on a.lnr = b.lnr
+where a.lnr = 'L06';
+go 
+--on update cascade hat funktioniert
+--dem Lieferanten wurde die Lieferantenummer geändert und seine
+--Lieferung wurden ihm wieder zugeordnet
+exec sp_help lieferant;
+go 
+
+alter table lieferung alter column lmenge int not null;
+go --ändern des Spaltennamen
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+--1. Dateigruppen (Aktiv, Passiv, Indexe) erstellen
+alter database standard add filegroup passiv;
+go
+alter database standard add filegroup aktiv;
+go
+alter database standard add filegroup indexe;
+go
+--3 Namespace wurden erstellt, das ergibt mit dem zuvor erstellten
+--Primary Key = 4 Schlüssel!
+--------------------------------------------------------------------------------------
+--2. Datenbankdateien erstellen und den entsprechenden Dateigruppen
+--zuordnen
+alter database standard add file(name = standard_passiv,
+							filename = 'j:\db_daten1\standard_passiv.ndf',
+							size = 20GB,
+							maxsize = 25GB,
+							filegrowth = 5%)to filegroup passiv;
+go
+--------------------------------------------------------------------------------------
+alter database standard add file(name = standard_aktiv,
+							filename = 'k:\db_daten2\standard_aktiv.ndf',
+							size = 20GB,
+							maxsize = 25GB,
+							filegrowth = 5%)to filegroup aktiv;
+go
+--------------------------------------------------------------------------------------
+alter database standard add file(name = standard_index,
+							filename = 'L:\indexe\standard_index.ndf',
+							size = 10GB,
+							maxsize = 20GB,
+							filegrowth = 1GB)to filegroup indexe;
+go
+--------------------------------------------------------------------------------------
+exec sp_helpdb standard;
+go 
+--------------------------------------------------------------------------------------
+--Vanessa hat nicht richtig gelesen und die falsche Größe für indexe eingetragen
+--so machen wir das ganze wiederrückgängig.
+-------------------------------------------------------------------------------------- 
+alter database standard remove file standard_indexe;
+go 
+--Danach erneut die richtige 'alter database index' ausführen
+--------------------------------------------------------------------------------------
+--Damit Datenbankbenutzer die berechtigt sind in der Datenbank
+--Tabellen, Sichten, Prozeduren oder Funktionen zu erstellen, diese
+--nicht aus Versehen in die Dateigruppe PRIMARY erstellen, machen wir
+--jetzt die Dateigruppe PASSIV zur DEFAULT Dateigruppe
+alter database standard modify filegroup passiv default;
+go 
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Maxsize von der Datei in PRIMARY und des Transaktionsprotokolls
+--ändern
+exec sp_helpdb standard;
+go 
+--------------------------------------------------------------------------------------
+alter database standard modify file(name = standard, maxsize = 20GB);
+go
+--------------------------------------------------------------------------------------
+alter database standard modify file(name = standard_log, maxsize = 15GB);
+go
+--------------------------------------------------------------------------------------
+--Tabellen in die entsprechende Dateigruppe verschieben
+--Tabellen können nur in eine andere Dateigruppe verschoben werden
+--indem der gruppierte Index (Primärschlüssel) gelöscht wird
+--und sofort wieder neu erstellt wird und ihm der Dateigruppenname
+--zugewiesen wird
+--------------------------------------------------------------------------------------
+--Die Tabellen Lieferant und Artikel nach 'Passiv' verschieben
+use standard
+go
+--------------------------------------------------------------------------------------
+alter table lieferung drop constraint lnr_fk;
+go
+alter table lieferung drop constraint anr_fk;
+go      --Schlüssel löschen
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--1. Tabelle Lieferant
+alter table lieferant drop constraint lnr_pk;
+go
+alter table lieferant add constraint lnr_pk primary key(lnr) on passiv;
+go
+--------------------------------------------------------------------------------------
+--2.Tabelle Artikel 
+alter table artikel drop constraint anr_pk;
+go
+alter table artikel add constraint anr_pk primary key(anr) on passiv;
+go
+--------------------------------------------------------------------------------------
+--3. Tabelle Lieferung
+alter table lieferung drop constraint lief_pk;
+go
+alter table lieferung add constraint lief_pk primary key (lnr,anr,ldatum) on aktiv;
+go
+--------------------------------------------------------------------------------------
+--Aufgabe 3 findet keinen primary key - diesen neu hinzufügen und 'alter' erneut ausführen
+alter table lieferung add constraint lief_pk primary key(lnr, anr, ldatum);
+go 
+--------------------------------------------------------------------------------------
+--Fremdschlüssel
+alter table lieferung add constraint lnr_fk foreign key(lnr)
+					 references lieferant(lnr) on update cascade;
+go
+--------------------------------------------------------------------------------------
+alter table lieferung add constraint anr_fk foreign key(anr)
+					 references artikel(anr) on update cascade;
+go
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+--komplexe Datenbank erstellen
+
+create database forschung
+on primary
+	(name = forschung_sk,
+	filename = 'c:\sql\daten1\forschung_sk.mdf',
+	size = 20MB,
+	maxsize = 50MB,
+	filegrowth = 10MB),
+filegroup aktiv
+	(name = forschung_daten1,
+	filename = 'c:\sql\daten2\forschung_daten1.ndf',
+	size = 20MB,
+	maxsize = 50MB,
+	filegrowth = 10MB),
+filegroup passiv
+	(name = forschung_daten2,
+	filename = 'c:\sql\daten3\forschung_daten2.ndf',
+	size = 20MB,
+	maxsize = 50MB,
+	filegrowth = 10MB)
+log on
+	(name = forschung_log,
+	filename = 'c:\sql\protokoll\forschung_log.ldf',
+	size = 20MB,
+	maxsize = 50MB,
+	filegrowth = 10MB);
+go
+--------------------------------------------------------------------------------------
+--Standard Dateigruppe festlegen
+alter database forschung
+modify filegroup passiv default;
+go
+--------------------------------------------------------------------------------------
+use forschung;
+go
+--------------------------------------------------------------------------------------
+create table orte
+(ortid int not null constraint ortid_ps primary key,
+plz char(5),
+ortsname nvarchar(100),
+constraint orte_unq unique(plz,ortsname));
+go
+--------------------------------------------------------------------------------------
+-- Stammdatensätze Orte für die Abteilungen
+insert into orte values(1,'98527','Suhl');
+insert into orte values(2,'99082','Erfurt');
+insert into orte values(3,'99423','Weimar');
+insert into orte values(4,'07743','Jena');
+insert into orte values(5,'99868','Gotha');
+insert into orte values(6,'99734','Nordhausen');
+insert into orte values(7,'99610','Sömmerda');
+go
+--------------------------------------------------------------------------------------
+create table abteilung
+(abt_nr char(3) not null constraint abt_nr_ps primary key
+			  constraint abt_nr_chk check((abt_nr like 'a[1-9][0-9]'
+			  or abt_nr like 'a[1-9]')
+			  and cast(substring(abt_nr,2,2) as integer) between 1 and 50),
+ abt_name nchar(50) not null constraint abt_name_chk check(abt_name like '[A-Z]%'),
+ ortid int not null constraint aortid_fs references orte(ortid)
+					constraint aortid_chk check(ortid in(1,2,3,4,5,6,7)));
+go
+--------------------------------------------------------------------------------------
+insert into abteilung values('a1','Forschung',1);
+go
+--------------------------------------------------------------------------------------
+create table projekt
+(pr_nr char(4) not null constraint pr_nr_ps primary key 
+			 constraint pr_nr_chk check((pr_nr like 'p[1-9][0-9][0-9]'
+			 or pr_nr like 'p[1-9][0-9]'
+			 or pr_nr like 'p[1-9]')
+			 and cast(substring(pr_nr,2,3) as integer) between 1 and 150),
+ pr_name nchar(50) not null constraint pr_name_chk check(pr_name like '[A-Z]%'),
+ mittel money not null constraint mittel_chk check(mittel between 1 and 2000000));
+go
+--------------------------------------------------------------------------------------
+insert into projekt values('p1','Mondlandung', 600000);
+go
+
+--------------------------------------------------------------------------------------
+create table mitarbeiter
+(m_nr integer not null identity(1000,1) constraint m_nr_ps primary key,
+ m_name nchar(50) not null constraint m_name_chk check(m_name like '[A-Z]%'),
+ m_vorname nchar(50) null constraint m_vorname_chk check(m_vorname like '[A-Z]%'),
+ ortid int not null constraint mortid_fs references orte(ortid),
+ strasse nchar(100)null constraint strasse_chk check(strasse like '[A-Z]%'),
+ geb_dat date null,
+ abt_nr char(3) null constraint abt_nr_fs references abteilung(abt_nr)
+								  on update cascade);
+go
+--------------------------------------------------------------------------------------
+insert into mitarbeiter values('Müller','Bernd',1,'Hochheimer Straße 2',
+							   '18.09.1999', 'a1');
+go
+--------------------------------------------------------------------------------------
+create table arbeiten
+(m_nr integer not null constraint m_nr_fs references mitarbeiter(m_nr)
+									on update cascade,
+ pr_nr char(4) not null constraint pr_nr_fs references projekt(pr_nr)
+									on update cascade ,
+ aufgabe nchar(200) null constraint aufgabe_chk check(aufgabe like '[A-Z]%'),
+ einst_dat date not null constraint einst_dat_chk 
+							 check(einst_dat >= dateadd(dd,-7,getdate())),
+ constraint arbeiten_ps primary key(m_nr,pr_nr)) on aktiv;
+go
+--------------------------------------------------------------------------------------
+insert into arbeiten values(1000,'p1','Organisator',getdate());
+go
+--------------------------------------------------------------------------------------
+create table telefon
+(m_nr integer not null constraint m_nr_fk references mitarbeiter(m_nr)
+									on update cascade,
+ vorw char(10) not null,
+ tel_nr char(10) not null,
+constraint tel_ps primary key(vorw, tel_nr));
+go
+--------------------------------------------------------------------------------------
+insert into telefon values(1000, '0361', '563399');
+go
+--------------------------------------------------------------------------------------
+select * from orte;
+select * from abteilung;
+select * from mitarbeiter;
+select * from telefon;
+select * from projekt;
+select * from arbeiten;
+go
+
+SELECT * from Sys.Objects WHERE Type='PK';
+go  --P-Schlüssel herrausfinden
+
+SELECT * FROM Sys.Objects WHERE Type='f'
+go   --F-Schlüssel herrausfinden
+--------------------------------------------------------------------------------------
+
+use standard
+go
+--------------------------------------------------------------------------------------
+--Datenbankobjekte, um Abfragen effektiver einzusetzen und schneller zu machen
+--------------------------------------------------------------------------------------
+--Sichten
+--Indizes
+--Transact SQL-Stapelprogramme
+--Cursor
+--gespeicherte Prozeduren
+--benutzerdefinierte Funktionen
+--Trigger
+--------------------------------------------------------------------------------------
+--Views (gespeicherte Abfragen)
+--Vorteil die Abfrage wird bei der ersten Ausführung kompiliert und der
+--Ausführungsplan in den Prozedurcache gelegt.
+--Jeder weitere Aufruf der Sicht verwendet den bereite kompiliert Ausführungsplan 
+--------------------------------------------------------------------------------------
+--Eine Sicht ermöglicht eine horizontale und vertikale Partitionierung von
+--Tabelleninfos.
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Der Meister des Meisterbereiches 2 soll nur die Mitarbeiter angezeigt bekommen
+--die in seinem Bereich arbeiten.
+--------------------------------------------------------------------------------------
+--Sichten werden mit CREATE VIEW- erstellt, 
+--mit ALTER VIEW- geändert 
+--und mit DROP VIEW- gelöscht.
+--------------------------------------------------------------------------------------
+-- die CREATE VIEW- Anweisung darf nicht mit anderen SQL- Anweisungen IN EINEM
+-- Stapel STEHEN: mit "go" separieren.
+--------------------------------------------------------------------------------------
+create view hamb_lief
+as
+select lnr,lname, lstadt
+from lieferant
+where lstadt ='Hamburg';
+go
+--------------------------------------------------------------------------------------
+--Wo werden Sichten gespeichert?
+select * from sys.objects where object_id = object_id('hamb_lief');
+go 
+select * from sys.views where object_id = object_id('hamb_lief');
+go 
+--------------------------------------------------------------------------------------
+--Wo liegt die Sichtdefinition?
+select*from sys.sql_modules where object_id = object_id('hamb_lief');
+go 
+
+exec sp_helptext 'hamb_lief';
+go 
+--------------------------------------------------------------------------------------
+select *from hamb_lief;
+go 
+--------------------------------------------------------------------------------------
+--VIEW- Definition verschlüsseln (Sichten)
+alter view hamb_lief
+with encryption
+as
+select lnr,lname, lstadt
+from lieferant
+where lstadt ='Hamburg';
+go
+--------------------------------------------------------------------------------------
+select*from sys.sql_modules where object_id = object_id('hamb_lief');
+go 
+--------------------------------------------------------------------------------------
+--VIEW- Definition endschlüsseln
+alter view hamb_lief
+as
+select lnr,lname, lstadt
+from lieferant
+where lstadt ='Hamburg';
+go
+--------------------------------------------------------------------------------------
+--Sichten mit Join
+create view lieflief
+as
+select a.lnr,lname,status, lstadt, anr, lmenge, ldatum
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go 
+--------------------------------------------------------------------------------------
+select * from lieflief;
+go 
+--------------------------------------------------------------------------------------
+--Datenänderung über Sichten (Insert, Update, Delete)
+--Datenänderung auf Sichten die sich auf mehr als eine Tabelle beziehen 
+--sind nicht  oder nur mit INSTEAD- Trigger möglich.
+--------------------------------------------------------------------------------------
+--Insert
+insert into hamb_lief values ('L30','Kirsten','Hamburg');
+go 
+--------------------------------------------------------------------------------------
+select * from hamb_lief;
+select * from lieferant;
+insert into hamb_lief values ('L31','Maier','Weimar');
+go 
+--------------------------------------------------------------------------------------
+select * from hamb_lief;
+select * from lieferant;
+go
+--------------------------------------------------------------------------------------
+alter view hamb_lief
+as
+select lnr,lname, lstadt
+from lieferant
+where lstadt ='Hamburg'
+with check option;
+go
+--------------------------------------------------------------------------------------
+insert into hamb_lief values ('L32','Warmduscher','Weimar');  -- FEHLER
+go
+
+insert into hamb_lief values ('L32','Warmduscher','Hamburg');  -- GEHT
+go
+--------------------------------------------------------------------------------------
+create view hamb_lief1
+as
+select lnr,lname 
+from lieferant
+where lstadt ='Hamburg'
+with check option;
+go
+--------------------------------------------------------------------------------------
+select * from hamb_lief1;
+go 
+--------------------------------------------------------------------------------------
+insert into hamb_lief values ('L33','Maria','Hamburg'); -- GEHT
+insert into hamb_lief values ('L33','Maria');		  -- GEHT
+go 
+-- UPDATE
+update hamb_lief
+set lstadt ='Erfurt'
+where lnr ='L32';		--FEHLER
+go 
+--------------------------------------------------------------------------------------
+update hamb_lief
+set lname ='Kaltduscher'
+where lnr ='L32'; 
+go 
+--------------------------------------------------------------------------------------
+select * from hamb_lief;
+
+go 
+--------------------------------------------------------------------------------------
+--Was wurde in der Datenbank gemacht
+--------------------------------------------------------------------------------------
+--Bespiel:
+update lieferant
+set lname ='Kaltduscher'
+where lnr ='L32'			-- kommt vom Update
+and lstadt ='Hamburg';		-- kommt vor der Sicht
+go 
+--------------------------------------------------------------------------------------
+-- DELETE
+-- nie ohne WHERE-Klausel!!!
+-- weil 
+-- delete hanb_lief;			-- löscht alle Hamburger Lieferanten
+--------------------------------------------------------------------------------------
+delete hamb_lief
+from hamb_lief as a left join lieferung as b on a.lnr = b.lnr
+where b.lnr is null;
+go 
+-- löscht alle Hamburger Lieferanten ohne Lieferungen
+--------------------------------------------------------------------------------------
+select * from hamb_lief;
+go 
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+---Indizies (Index erstellen)
+create table indtest
+(id int not null,
+namen varchar(100) not null,
+vname varchar(100) null,
+ort varchar(200) not null);
+go
+--------------------------------------------------------------------------------------
+declare @x int=1;
+while @x <= 1000000
+begin
+insert into indtest
+values(@x, cast(@x as varchar(10)) + '_Warmduscher',
+'Max_' + cast(@x as varchar(10)),
+cast(@x as varchar(10)) + '_Suhl_' + cast(@x as varchar(10)));
+set @x += 1;
+end;
+go
+--------------------------------------------------------------------------------------
+select count(*) from indtest;
+go 
+
+select * from indtest;
+go 
+--------------------------------------------------------------------------------------
+select * from sys.indexes where object_id = object_id('indtest');
+go 
+--------------------------------------------------------------------------------------
+--Eine Tabelle kann maximal 1000 Indizes besitzen
+--1 gruppierten Index und 999 nicht gruppierte Indizes
+--Besitzt eine Tabelle keinen gruppierten Index, bleiben die Daten in der
+--Speicherorganisationsform "Haufen"
+--------------------------------------------------------------------------------------
+create index vname_ind on indtest(vname);
+go 
+--------------------------------------------------------------------------------------
+--Welche Indizes gibt es für die Tabelle
+select * from sys.indexes where object_id = object_id('indtest');
+go 
+--------------------------------------------------------------------------------------
+-Fragmentierungsgrad des Haufens
+select * from
+sys.dm_db_index_physical_stats(db_id(),object_id('indtest'), null, null, null);
+go 
+--------------------------------------------------------------------------------------
+select * from indtest where vname like '%3099%';
+go 
+--------------------------------------------------------------------------------------
+--sobald ein gruppierter Index erstellt wird, wird die physische Reihenfolge der 
+--Datensätze entsprechend der indizierten Reihenfolge geändert.
+--------------------------------------------------------------------------------------
+--Primärschlüssel für die Tabelle indtest
+create table indtest add constraint id_pk primary key(id);
+go 
+
+select * from indtest where vname like '%3099%';
+go 
+
+select * from indtest where id between 3055 and 10344;
+go 
+--------------------------------------------------------------------------------------
+--Welche Indizes gibt es für die Tabelle
+select * from sys.indexes where object_id = object_id('indtest');
+go 
+--------------------------------------------------------------------------------------
+--Fragmentierungsgrad des Haufens
+select * from
+sys.dm_db_index_physical_stats(db_id(),object_id('indtest'), null, null, null);
+go 
+--------------------------------------------------------------------------------------
+select astadt
+from Artikel
+where aname = 'Schraube' and astadt like '%m%';
+go 
+--------------------------------------------------------------------------------------
+--Zusammengesetzter Index
+create index aname_astadt_ind on artikel(aname,astadt);
+go 
+--------------------------------------------------------------------------------------
+select aname, astadt, amenge
+from Artikel
+where farbe = 'rot';
+go 
+--------------------------------------------------------------------------------------
+--abgedeckter Index (der Index deckt die Abfrage vollständig ab)
+create index farbe_art on Artikel(farbe,aname,astadt,amenge);
+go 
+--------------------------------------------------------------------------------------
+--Index mit eingeschlossenen Spalten
+--wird verwendet, wenn die Anzahl der Spalten des Zusammengesetzten Index
+--16 Spalten überschreitet und/oder die Länge der Spaltenwerte größer 900 Byte ist.
+create index farbe_art_inc on Artikel(farbe) include (aname,astadt,amenge);
+go 
+--------------------------------------------------------------------------------------
+select aname, astadt, amenge
+from Artikel
+where farbe = 'rot';
+go 
+--------------------------------------------------------------------------------------
+-- damit ist der zusammengesetzte Index überflüssig und kann gelöscht werden
+drop index artikel.farbe_art;
+go 
+--------------------------------------------------------------------------------------
+--Indexfragmentierung
+--Die Fragmentierung von Indizes stellen sie mit der dynamischen Verwaltungsfunktion
+--"sys.dm_db_index_physical_stats()" fest.
+--Wichtig dabei ist die Spalte avg_fragmentation_in_percent
+--------------------------------------------------------------------------------------
+--Bei einer Fragmentation bis 30% wird der Index neu organisiert
+alter index farbe_art_inc on artikel reorganize;
+go 
+--------------------------------------------------------------------------------------
+--Bei einer Fragmentation über 30% wird der Index neu gebildet
+alter index farbe_art_inc on artikel rebuild;
+go 
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+--Programmieren mit Transact SQL
+--------------------------------------------------------------------------------------
+--Begriffe:
+--Skript -- ist eine Datei welche mit der Endung .sql abgespeichert wird
+--Stapel -- ein Skript besteht aus einem oder mehrere Stapel
+--Ein Stapel endet mit einem Stapelendzeichen "go"
+--Eine Variable, welche in einen Stapel deklariert wurde, kann in einem anderen
+--Stapel nicht verwendet werden -- sie ist nicht bekannt
+--------------------------------------------------------------------------------------
+--Anweisungsblöcke
+--Werden verwendet in einer WHILE- Schleife, im IF/ELSE- Zweig einer
+--IF/ELSE- Anweisung und im Body von Benutzerdefinierten Funktion
+--------------------------------------------------------------------------------------
+begin
+select @@version;
+select * from lieferant;
+end;
+go 
+--------------------------------------------------------------------------------------
+--Meldungen
+--einfache Meldungen mit PRINT
+--Print gibt nur Zeichenfolge zurück
+--------------------------------------------------------------------------------------
+print 'Heute ist ' + datename(dw,getdate()) +
+' der ' + convert(char(10),getdate(),104);
+go 
+--------------------------------------------------------------------------------------
+--Meldungen mit raiserror können benutzerdefinierte Meldungen, Systemmeldungen
+--und AdHoc- Meldungen verwendet werden
+--------------------------------------------------------------------------------------
+--Systemmeldungen und benutzerdefinierte Meldungen werden in sys.messages gespeichert
+SELECT * FROM sys.messages WHERE language_id = 1031;
+go 
+----------------------------------------------------------------------------------------
+Benutzerdefinierte Meldungen beginnen bei der MESSAGES_ID > 50000
+--Raiserrormeldungen besitzen einen Schweregrad
+--1 - 10 -- einfache Fehler, die vom Benutzer behoben werden
+--11 - 18 -- komplexere Fehler, die teilweise vom Benutzer behoben werden können
+--19 - 25 -- sind schwerwiegende Fehler des Systems, können nur von sysadmin angegeben
+--werden und müssen ins Ereignisprotokoll von Windows geschrieben werden
+--20 - 25 trennt den Client vom Server
+--------------------------------------------------------------------------------------
+--Meldung erstellen
+exec sp_addmessage 600000,10,'Cant deleted!','us_english','false';
+go 
+exec sp_addmessage 600000,10,'kann nicht gelöscht werden!','german','false';
+go 
+--------------------------------------------------------------------------------------
+raiserror(600000,10,1); -- Meldung
+raiserror(600000,13,1); -- Fehler 600000
+raiserror(600000,21,1) with log; -- schwerer Fehler
+go 
+--------------------------------------------------------------------------------------
+--Sie können Raiserror mit jedem schweregrad ins Ereignisprotokoll eintragen lassen.
+raiserror(600000,13,1) with log; -- Fehler 600000 im Ereignisprotokoll
+--------------------------------------------------------------------------------------
+--AdHoc - Meldungen
+raiserror ('Heute ist Donnerstag.',10,1);
+go
+
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--Variable
+--Die Variablen steht nur innerhalb des Stapels zur Verfügung
+--in dem die Variable deklariert wurde
+--------------------------------------------------------------------------------------
+--Deklaration
+--------------------------------------------------------------------------------------
+--XML
+select lieferant.lnr,lname, ldatum, lmenge
+from lieferant join lieferung on lieferant.lnr = lieferung.lnr
+for xml auto, root('Lieferung'), elements;
+go
+----------------------------------------------------------------------------------------------
+declare @ort varchar(50), @farbe varchar(10), @nummer char(30)
+declare @kuchen xml;
+declare @erg table(nummer char(3),
+				   namen varchar(50),
+				   lagermenge int);
+go
+--------------------------------------------------------------------------------------
+--Wertzuweisung
+--1. 
+set @ort = 'Hamburg';
+set @farbe = 'rot';
+set @nummer = 'A03';
+go
+--------------------------------------------------------------------------------------
+--2.
+select @ort = astadt, @farbe = farbe from artikel where anr = @nummer;
+go 
+
+set @kuchen = '<rezept>
+			  <mehl>500</mehl>
+			  <eier>4</eier>
+			  <zucker>200</zucker>
+			  </rezept>';
+go 
+--------------------------------------------------------------------------------------
+insert into @erg select anr,aname,amenge from artikel where astadt = @ort;
+go 
+--------------------------------------------------------------------------------------
+--Variableninhalt anzeigen
+-- 1.
+select @ort as [Ortsvaribale], @farbe as [Farbe], @nummer as [Artikelnummer];
+go 
+--------------------------------------------------------------------------------------
+--2.
+select @ort = astadt, @farbe = farbe from artikel where anr = @nummer;
+go 
+--------------------------------------------------------------------------------------
+set @kuchen = '<rezept>
+			  <mehl>500</mehl>
+			  <eier>4</eier>
+			  <zucker>200</zucker>
+			  </rezept>';
+go 
+--------------------------------------------------------------------------------------
+insert into @erg select anr,aname,amenge from artikel where astadt = @ort;
+go 
+--------------------------------------------------------------------------------------
+--Variableninhalt anzeigen
+-- 1.
+select @ort as [Ortsvaribale], @farbe as [Farbe], @nummer as [Artikelnummer];
+go 
+--------------------------------------------------------------------------------------
+-- 2. 
+print 'Der Artikel '+'(' + @nummer + ') ist ' + @farbe + ' und lagert in ' +@ort;
+go 
+--Gesamten Stapel ausführen!!! vom DECLARE bis zum GO
+--------------------------------------------------------------------------------------
+--Sprach- Konstrukte
+--IF/ELSE
+--------------------------------------------------------------------------------------
+--Variante 1
+declare @tab sysname = 'Zitrone';
+if not exists(select * from  sys.tables where object_id = object_id(@tab))
+begin
+	 raiserror('Die Tabelle %s gibt es nicht.',10,1,@tab);
+	 return;
+end
+go						--alles zusammen ausführen
+--------------------------------------------------------------------------------------
+--Variante 2
+declare @datum datetime = '01.06.2022';
+if @datum >= dateadd(dd, -7, getdate())
+begin
+	 raiserror('Das Datum ist im Bereich.',10,1);
+end
+else
+begin
+	 raiserror('Das Datum ist zu groß',10,1)  --Aussage hier
+end
+go
+
+--------------------------------------------------------------------------------------
+declare @datum datetime = '01.06.2022';
+if @datum <= dateadd(dd, -7, getdate())
+begin
+	 raiserror('Das Datum ist im Bereich.',10,1); --Aussage hier 
+end
+else
+begin
+	 raiserror('Das Datum ist zu groß',10,1)
+end
+go
+--------------------------------------------------------------------------------------
+--neu im Angebot
+drop table if exists zitrone  --löschen
+--------------------------------------------------------------------------------------
+--Schleifen (Seite 238)
+declare @x int =1;
+while @x <= 10
+begin
+	 print cast(@x as varchar(10)) + '.Durchlauf.';
+	 set @x += 1;
+end				--kopfgesteuerte Schleife
+--------------------------------------------------------------------------------------
+--TRY 		--CATCH
+
+begin try
+	 begin 
+		select 1/0;
+	 end
+end try
+begin catch
+	 begin
+		 select ERROR_NUMBER() as [Fehlernummer],
+				ERROR_MESSAGE() as [Fehlertext],
+				ERROR_SEVERITY() as [Schweregrad]
+		end
+end catch;
+------------------------------------------
+begin try
+begin
+	 begin transaction erdbeere
+		 update lieferant set lstadt = 'Erfurt';           
+		select 1/0;
+		commit transaction erdbeere
+end	 
+end try
+begin catch
+	 begin
+		 rollback transaction erdbeere
+		 select ERROR_NUMBER() as [Fehlernummer],
+				ERROR_MESSAGE() as [Fehlertext],
+				ERROR_SEVERITY() as [Schweregrad];
+		end
+end catch;
+go
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--Dynamische SQL Anweisung 
+declare @tab sysname, @nr char(3), @spalte1 sysname, @spalte2 sysname
+set @nr = 'A03';
+set @tab = 'artikel';
+set @spalte1 = 'aname';
+set @spalte2 = 'astadt';
+go
+
+--------------------------------------------------------------------------------------
+--select @spalte1, @spalte2 from @tab where anr = @nr; 
+--ergibt FEHLER: Die @spalte1-Skalarvariable muss deklariert werden
+--------------------------------------------------------------------------------------
+--in der FROM- Klausel darf nur ein Tabellenname oder eine 
+--Tabellenvariable stehen
+--Der Abfrageoptimierer stellt fest das eine Variable in der FROM- Klausel 
+--steht, sie aber nicht als Variable deklariert wurde
+--------------------------------------------------------------------------------------
+--Wir benötigen eine dynamische SQL-Anweisung 
+--Diese wird erst zur Laufzeit aufgebaut und mit EXEC (execute) ausgeführt
+--------------------------------------------------------------------------------------
+--Den Abfragestring können Sie einer Variablen übergeben oder direkt
+-- im EXECUTE definieren
+--------------------------------------------------------------------------------------
+--Variante 1
+--exec('select ' + @spalte1 + ',' + @spalte2 + 'from' +
+--@tab + ' where anr = ' +  @nr);   ---ungültiger spaltenname A03
+--------------------------------------------------------------------------------------
+--Variante 2
+declare @sql varchar(max), @hk char(1) = char(39);
+set @sql = 'select ' + @spalte1 + ',' + @spalte2 + ' from ' +
+	 @tab + ' where anr =  ' +  @hk + @nr +@hk;
+	 go 
+
+select @sql;
+go
+--------------------------------------------------------------------------------------
+exec(@sql);
+go
+----------------------------------------------------------------------------------------auf Leerzeichen achten!!!
+--hier immer das ganze Skript ausführen, deswegen haben wir die oberen 2 Befehle 
+--als Text umgewandelt, so stören Sie uns nicht bei der Skriptausführung
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+if DB_NAME() in('master','tempdb','msdb','model')
+begin
+	 raiserror('Sie befinden sich in einer Systemdatenbank.',10,1);
+	 return;
+end;
+go 
+--------------------------------------------------------------------------------------
+--PART 2 CURSOR | ohne unlimited
+--------------------------------------------------------------------------------------
+use standard 
+go
+
+--------------------------------------------------------------------------------------
+select name, size, max_size from sys.database_files;
+alter database standard modify file (name = standard,
+									 maxsize = 20GB);
+go
+--------------------------------------------------------------------------------------
+select name, size, max_size from sys.database_files;
+alter database standard modify file (name = standard_log,
+									 maxsize = 10GB);
+go
+--------------------------------------------------------------------------------------
+use standard
+go
+
+declare @realsize bigint = 0, @maxsize bigint = 0, @name varchar(2000);
+
+declare filegroesse cursor for
+select name, size, max_size from sys.database_files;	    --cursor wurde deklariert
+--------------------------------------------------------------------------------------
+open filegroesse;
+--------------------------------------------------------------------------------------
+--"open filegroesse" Die Abfrage des Cursors wird ausgeführt und das Ergebnis 
+--der Abfrage wird in den Arbeitsspeicher gelegt - der Datensatzpointer wird gebaut
+-------------------------------------------------------------------------------------- 
+fetch from filegroesse into @name, @realsize, @maxsize;   
+-- @fetch status wird initialisiert
+while @@FETCH_STATUS = 0
+begin
+	 if((@realsize * 8192 / 1024) * 100/ (@maxsize * 8192 / 1024)) >= 20
+	  begin
+		dbcc shrinkfile(@name);
+		if((@realsize * 8192 / 1024) * 100/ (@maxsize * 8192 / 1024)) >= 20
+		raiserror('Die Datei %s konnte nicht verkleinert werden.',10,1,@name);
+		else
+		raiserror('Die Datei %s wurde verkleinert.',10,1,@name);
+	 end
+	else
+		raiserror('Die Datei %s musste nicht verkleinert werden.',10,1,@name);
+
+	fetch from filegroesse into @name, @realsize, @maxsize;
+end;
+deallocate filegroesse; 	--nur bei cursor für löschen verwenden 
+--Skript ab 'use standard' bis 'deallocate' ausführen
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Schreiben Sie ein Skript, welches Ihnen für jede Tabelle der aktuellen Datenbank den 
+--Tabellennamen und die Anzahl der Datensätze dieser Tabelle in einem 
+--Tabellenergebnis, mit den Spalten "Tabellenname" und "Anzahl Datensätze" ausgibt
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+declare @ausgabe table(Tabellenname varchar (200), Anzahl_Datensätze int);
+declare @anz table (anzahl int);
+declare @tabelle sysname, @sql varchar(max);
+
+declare tab_such cursor for 
+select b.name + '.' + a.name
+from sys.tables as a join sys.schemas as b 
+on a.schema_id = b.schema_id
+where a.name not like 'sys%';
+
+open tab_such;
+fetch tab_such into @tabelle;
+
+while @@fetch_status = 0
+begin
+	delete @anz;
+	set @sql = 'select count (*) from ' + @tabelle;
+	insert into @anz exec (@sql);
+	insert into @ausgabe values (@tabelle, (select anzahl from @anz));
+	fetch tab_such into @tabelle;
+end;
+select * from @ausgabe; 
+deallocate tab_such;
+go
+
+--------------------------------------------------------------------------------------
+--Schreiben Sie ein Skript welches für die oben angegebene Tabelle und den angegeben 
+--Indexname den Fragmentierungsgrad des Index ermittelt. 
+--Ist der Fragmentierungsgrad unter 7% soll nichts passieren.
+--Ist der Fragmentierungsgrad zwischen 8 und 30% soll der Index reorganisiert 
+--werden, ist der Fragmentierungsgrad über 30% soll der Index neu gebildet werden.
+--------------------------------------------------------------------------------------
+declare @tabname sysname ='artikel', @indname varchar(100) ='anr_ps';
+declare @tabvoll sysname, @indid int;
+--------------------------------------------------------------------------------------
+select @tabvoll = a.name + '.' + b.name 
+from sys.schemas as a join sys.tables as b 
+on a.schema_id = b.schema_id 
+where b.name = @tabname and b.name  not like 'sys%';
+if not exists(select * from sys.objects where object_id = object_id(@tabname))
+  begin
+	raiserror('Die Tabelle %s gibt es nicht in der Datenbank.',10,1,@tabname);
+	return;
+  end;
+else if not exists (select * from sys.indexes where name = @indname)
+	  begin
+		raiserror('Einen index mit dem Namen %s gibt es nicht.',10,1,@indname);
+		return;
+	  end;
+--------------------------------------------------------------------------------------
+select @indid = index_id from sys.indexes where name = @indname;
+
+if (select avg_fragmentation_in_percent
+    from 
+	sys.dm_db_index_physical_stats(db_id(),object_id(@tabvoll),
+	@indid, null,null)) < 7
+begin
+	raiserror('Index %s nicht fragmentiert.',10, 1, @indname);
+end;
+if (select avg_fragmentation_in_percent
+	from 
+	sys.dm_db_index_physical_stats(db_id(),object_id(@tabvoll),
+	@indid, null,null)) between 8 and 30
+begin
+	execute ('alter index ' + @indname + ' on ' + @tabvoll + ' reorganize;');
+	raiserror('Index %s ist leicht fragmentiert. er wurde reorganisiert'
+	,10, 1, @indname);
+end;
+if (select avg_fragmentation_in_percent
+	from 
+	sys.dm_db_index_physical_stats(db_id(),object_id(@tabvoll),@indid,
+	null,null)) > 30
+begin
+	execute ('alter index ' + @indname + ' on ' + @tabvoll + ' rebuild;');
+	raiserror('Index %s ist stark fragmentiert. er wurde neu gebildet'
+	,10, 1, @indname);
+end;
+go
+---------------------------------------------------------------------------------
+use standard;
+go
+
+--------------------------------------------------------------------------------------
+-- Programmierung von Skripten
+-- ein Skript besitzt die Endung .SQL es kann manuell über den SSMS oder über
+-- SQLCMD gestartet werden. Außerdem kann ein Skript in Aufträge des Betriebssystems
+-- eingebunden werden und durch diese gestartet werden.
+--------------------------------------------------------------------------------------
+-- Grundlegender Umgang bei der Arbeit mit Variablen
+--1. eine Variable muss deklariert werden
+--2. danach wird die Variable mit Werten gefüllt.
+-- dazu verwendet man SET oder die SELECT Anweisung in Verbindung mit
+-- Sprach- Konstrukten der Sprache TSQL
+-- IF/ELSE, Anweisungsblöcke, WHILE, TRY and Catch, raiserror, print,
+-- return
+--3. Ausgeben und Anzeigen des Inhalts der Variable
+-- Eine normale Variable muss nicht vernichtet werden: gilt nur für den aktuellen Stapel
+--------------------------------------------------------------------------------------
+-- Eine Variable von Typ CURSOR wird deklariert, mit OPEN geöffnet, mit FETCH durchsucht
+-- mit CLOSE geschlossen und mit DEALLOCATE vernichtet.
+-- Ein Cursor wird immer dann verwendet, wenn für die Menge von Ergebnissen
+-- für jede einzelne Teilmenge eine Entscheidung getroffen werden soll.
+
+-- Beispiel: Ermitteln aller Daten und Protokolldateien einer Datenbank. 
+--Feststellen der Größe jeder Datei und die Datei verkleinern, wenn eine kritische
+-- Größe erreicht wurde.
+--------------------------------------------------------------------------------------
+-- Dynamische SQL-Anweisungen:
+--Beispiel
+--1. select spalte, spalte from tablele where spalte = @wert; --geht immer 
+--2. select @spvar, @spvar from @tabvar where @spvar =  @wert; --Es wird eine dynamische Abfrage benötigt
+
+declare @sp1 sysname, @sp2 sysname, @tab sysname, @wert int = 0;
+set @sp1 = 'aname';
+set @sp2 = 'amenge';
+set @tab = 'artikel';
+set @wert = 300;
+
+--------------------------------------------------------------------------------------
+---!!			SO nicht:				!!
+select @sp1 from @tab where @sp2 >= @wert;		
+go		--Die @tab-Tabellenvariable muss deklariert werden.
+--------------------------------------------------------------------------------------
+execute('select ' + @sp1 + ' from ' + @tab + ' where ' + @sp2 + ' >= ' + @wert);
+go
+-- So ist es richtig!
+--------------------------------------------------------------------------------------
+--gespeicherte Systemprozeduren 
+exec sp_help 'lieferant';
+exec sp_help;
+go
+--------------------------------------------------------------------------------------
+--Benutzerdefinierte gespeicherte Prozeduren 
+
+--eine Prozedur kann keinen, einen oder mehrere Parameterwerte übernehmen
+--Im BODY einer Prozedur können mehrere Anweisungen enthalten sein
+--Eine Prozedur kann weitere Prozeduren aufrufen 
+--Die Verschachtelungsebene darf 32 nicht überschreiten 
+--Feststellen in welcher Ebene ich mich befinde mit der Funktion @@nestlevel
+
+--gespeicherte Prozeduren können auch mit CLR (Common Language Runtime) erstellt
+--werden, als Assembly im SQL-Server bekannt gemacht werden und aus dem Assembly 
+--mit CREATE PROCEDURE... eine gespeicherte Prozedur erstellen
+
+--CLR --> .NET- fähige Programmierung
+--------------------------------------------------------------------------------------
+--Vorteile
+--1. die modulare Programmierung. SQL- Code wird zu einer Einheit kompiliert
+--2. die Geschwindigkeit. Nach dem ersten Ausführen der Prozedur wird der 
+--		kompilierte Ausführungsplan in den Prozedurecache abgelegt und jede erneute
+--		Ausführung greift nur noch auf den Prozedurecache zurück
+--3. Reduzierung des Netzwerkverkehrs
+--4. Verwendung als Sicherheitsmechanismus. Werden Informationen aus kritischen 
+--		Umgebungen (Internet) direkt in die Datenbank gespeichert, sollte 
+--		dazu eine Prozedur zwischengeschaltet werden. Plausibilitätsprüfung
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+alter procedure mathe (--ggf create)
+as
+declare @zahl1 float, @zahl2 float, @erg float;
+set @zahl1 = 3.986;
+set @zahl2 = 12.006
+
+set @erg = @zahl1 / @zahl2;
+print 'Ergebnis:   ' + cast(@erg as varchar(100));
+go
+--------------------------------------------------------------------------------------
+--Prozedur starten
+exec mathe;
+go
+--------------------------------------------------------------------------------------
+--Parameter Übergabe an die Prozedur
+alter procedure mathe1 @zahl1 float, @zahl2 float
+as
+declare @erg float;
+--------------------------------------------------------------------------------------
+set @erg = @zahl1 / @zahl2;
+print 'Ergebnis:   ' + cast(@erg as varchar(100));
+go
+--------------------------------------------------------------------------------------
+
+exec mathe1 12.88,19.7;
+go
+--------------------------------------------------------------------------------------
+--Ausgabe: 0.653807
+--------------------------------------------------------------------------------------
+--Parametervariablen der Prozedur mit DEFAULT- Werten belegen
+create procedure mathe2 @zahl1 float = 1, @zahl2 float = 1
+as
+declare @erg float;
+
+set @erg = @zahl1 / @zahl2;
+print 'Ergebnis:   ' + cast(@erg as varchar(100));
+go
+--------------------------------------------------------------------------------------
+exec mathe2 12.88,19.7;
+go
+		--ODER
+exec mathe2 12.88;
+go
+		--ODER
+exec mathe2;
+go
+		--ODER
+exec mathe2 default, 34.99;
+go
+--------------------------------------------------------------------------------------
+--Ergebnis:   0.653807
+--Ergebnis:   12.88
+--Ergebnis:   1
+--Ergebnis:   0.0285796
+--------------------------------------------------------------------------------------
+--Die Prozedur soll das berechnete Ergebnis an das aufrufende 
+--Programm zurückgeben
+create procedure mathe3 @zahl1 float = 1, @zahl2 float = 1, @erg float output
+as
+set @erg = @zahl1 / @zahl2;
+go
+--------------------------------------------------------------------------------------
+declare @ergebnis float 
+exec mathe3 5.88,2.66, @ergebnis output;
+print 'Ergebnis:   ' + cast(@ergebnis as varchar(100));
+go
+--------------------------------------------------------------------------------------
+--Ausgabe:	2.21053
+--------------------------------------------------------------------------------------
+--Fehlerhafte Parameterwerte verhindern
+create procedure mathe4 @zahl1 float = 1, @zahl2 float = 1, @erg float output
+as
+if @zahl2 = 0
+begin
+	raiserror('Du sollst nicht teilen durch NULL, du Willy!',10,1);
+	return;
+end;
+set @erg = @zahl1 / @zahl2;
+go
+--------------------------------------------------------------------------------------
+declare @ergebnis float 
+exec mathe4 5.88,0, @ergebnis output;
+print 'Ergebnis:   ' + cast(@ergebnis as varchar(100));
+go
+--Ausgabe:		Du sollst nicht teilen durch NULL, du Willy!
+--------------------------------------------------------------------------------------
+
+--Die Prozedur gibt einen RETURN- Wert zurück
+alter procedure mathe5 @zahl1 float = 1, @zahl2 float = 1, @erg float output
+as
+if @zahl2 = 0
+begin
+	return 8;
+end;
+set @erg = @zahl1 / @zahl2;
+go
+--------------------------------------------------------------------------------------
+declare @ergebnis float, @rw int
+exec @rw = mathe5 5.88,23, @ergebnis output;
+if @rw = 8 
+raiserror('Du sollst nicht teilen durch NULL, du Willy!',10,1);
+else
+print 'Ergebnis:   ' + cast(@ergebnis as varchar(100));
+go
+--------------------------------------------------------------------------------------
+--Aufgabe Prozedur:
+--Wir schreiben eine Prozedur welcher eine Farbe eines Artikels 
+--übergeben wird
+--Die Prozedur soll mir den Artikelname, die Artikelnummer und den Lagerort
+--der Artikel mit der angegebenen Farbe anzeigen bzw. zurückgeben.
+--------------------------------------------------------------------------------------
+create procedure _farb_art @farbe varchar(10)
+as
+select anr, aname, astadt 
+from artikel
+where farbe = @farbe; 
+go
+--------------------------------------------------------------------------------------
+exec _farb_art 'rot';
+go
+--------------------------------------------------------------------------------------
+--Erweiterung der oben genannten Aufgabenstellung:
+--Wird keine Farbe übergeben sollten alle Artikel angezeigt werden
+--Das Ergebnis anzeigen und den Übergabe Parameter temporär machen
+--------------------------------------------------------------------------------------
+alter procedure _farb_art @farbe varchar(10) = NULL
+as
+if @farbe is not NULL 
+begin 
+	 raiserror ('Artikel für die Farbe %s.',10,1,@farbe)
+	 select anr, aname, astadt 
+	 from artikel
+	 where farbe = @farbe
+end;
+
+if @farbe is null
+begin
+	 raiserror ('Artikel über alle Farben',10,1)
+	 select anr, aname, astadt 
+	 from artikel
+end;
+go
+--------------------------------------------------------------------------------------
+exec _farb_art 'blau';
+exec _farb_art;
+go
+--------------------------------------------------------------------------------------
+--Die Prozedur soll das Ergebnis an das aufrufende Programm zurückgeben
+--1. permanente Tabelle 
+--------------------------------------------------------------------------------------
+--Tabelle erstellen
+create table art_ergebnis
+(Artikelnummer char(3),
+Artikelname varchar(300),
+Lagerort varchar(200));
+go 
+
+insert into art_ergebnis exec _farb_art 'rot';
+go 
+
+select * from art_ergebnis;
+go   
+--diese Tabelle steht bis zur Löschung zur Verfügung
+------------------------------------------------------------------
+--Die Prozedur soll das Ergebnis an das aufrufende Programm zurückgeben
+--2. mit einer Tabellenvariablen 
+declare @erg table (Artikelnummer char(3),
+					Artikelname varchar(300),
+					Lagerort varchar(200));
+go 
+					
+insert into @erg exec _farb_art 'rot';
+go 
+
+select * from @erg;
+go 	
+--diese Tabelle kann nur bis zum GO verwendet werden und ist nach dem GO weg. 
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--Aufgabe:
+--Schreiben Sie eine Prozedur "obj_anz" der optimal ein Datenbankobjektname- 
+--Bezeichner übergeben wird
+--Gültige Bezeichner Objektname sind: Tabelle, Sicht, Prozedur
+--------------------------------------------------------------------------------------
+--Wird die Prozedur keinen Bezeichner übergeben soll die Prozedur die 
+--Anzahl der Tabellen, der Sichten und der Prozeduren anzeigen.
+--------------------------------------------------------------------------------------
+--Wird ein Bezeichner übergeben, soll nur die Anzahl des angegebenen 
+--Bezeichners zurückgegeben werden
+--------------------------------------------------------------------------------------
+--Verwenden für die Rückgabe eine Tabellenvariable
+--Die Angaben zu den Objekten finden Sie in der Systemsicht sys.objects 
+--und nähere Informationen in der Spalte TYPE
+--------------------------------------------------------------------------------------
+create procedure obj_anz @bezeichner varchar(200) = null
+as
+if @bezeichner is not null 
+   and @bezeichner not in('tabelle','sicht','prozedur')
+  begin
+  raiserror('Folgende Parameterwerte sind zulässig: Tabelle; Sicht; Prozedur.',10,1);
+  return;
+  end
+declare @ausgabe table(Objekttyp nvarchar(50), Anzahl int); 
+
+if @bezeichner is null
+  begin
+	select case when type = 'u' then 'Tabellen'
+						when type = 'v' then 'Sichten'
+						when type = 'p' then 'Prozeduren'
+						end as [Objekttyp], isnull(COUNT(*),0) as [Anzahl]
+	from sys.objects
+	where type in('u','v','p') and name not like 'sys_%'
+	and name not like 'sp_%' and name not like 'fn_%'
+	group by type;
+  end;
+
+if @bezeichner is not null
+begin
+if @bezeichner = 'sicht'
+  begin
+	insert into @ausgabe values('Sichten',
+					(select count(*) from sys.objects where type = 'v'));
+	select * from @ausgabe;
+  end;
+if @bezeichner = 'tabelle'
+  begin
+	insert into @ausgabe values('Tabellen',
+					(select count(*) from sys.objects where type = 'u'
+									  and name not like 'sys_%'));
+	select * from @ausgabe;
+  end;
+if @bezeichner = 'prozedur'
+  begin
+	insert into @ausgabe values('Prozeduren',
+					(select count(*) from sys.objects where type = 'p'
+									  and name not like 'sp_%'));
+	select * from @ausgabe;
+  end;
+
+end;
+go
+--------------------------------------------------------------------------------------
+exec obj_anz;
+exec obj_anz 'Sicht';
+go
+--------------------------------------------------------------------------------------
+/*
+Schreiben Sie eine gespeicherte Prozedur welche den Fragmentierungsgrad der Indizes, 
+der Tabellen der Datenbank Standard, überprüft und die Indizes bei Bedarf defragmentiert.
+
+1. Der Prozedur soll der Name der Tabelle und der Name eines Indexes übergeben werden. 
+2. Der Name der Tabelle muss auf jeden Fall der Prozedur übergeben werden, der Indexname ist eine optionale Eingabe.
+3. Wird der Prozedur kein Indexname übergeben muss jeder Indexname der angegebenen Tabelle auf Fragmentierung überprüft werden und bei einem festgestellten Fragmentierungsgrad entsprechend behandelt werden.
+4. Wird der Indexname angegeben dann soll nur dieser spezielle Index auf Fragmentierung überprüft werden und entsprechend behandelt werden.
+5. Es gilt, ist der Fragmentierungsgrad unter 8% soll mit dem Index nichts passieren.
+6. Ist der Fragmentierungsgrad zwischen 8% und 30% (Grenzen einschließen) soll der Index reorganisiert werden.
+7. Liegt der Fragmentierungsgrad über 30% soll der Index neu gebildet werden.
+8. Je nachdem was die Prozedur für dem jeweiligen Index macht (Nichts, Reorganisieren ODER Neu bilden) soll eine entsprechende Raiserror Meldung (Schweregrad 10) für den Anwender der Prozedur generiert werden. 
+9. Außerdem soll die Prozedur über eine geeignete Parameter- und Fehlerüberprüfung verfügen. 
+*/
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+create procedure ind_defr @tab nvarchar(200), @ind varchar(200) = null
+as
+declare @obj_id int, @ind_id int, @ind_name nvarchar(200)
+
+if not exists(select * from sys.objects where object_id = object_id(@tab))
+	begin
+		raiserror('Die Tabelle %s gibt es nicht in der Datenbank ',10,1,@tab,)
+		return
+	end
+if @ind is null
+	begin
+		declare tab_ind cursor for
+		select object_id, index_id, name from sys.indexes where object_id = object_id(@tab)
+		open tab_ind
+		fetch tab_ind into @obj_id, @ind_id, @ind_name
+		while @@fetch_status = 0
+			begin
+					if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats(db_id(),object_id(@tab),@ind_id,null,null)) < 13
+				begin
+					raiserror ('Index %s nicht fragmentiert.',10,1,@ind_name)
+				end
+				if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats(db_id(),object_id(@tab),@ind_id,null,null))between 13 and 30
+				begin
+					execute ('alter index ' + @ind_name + ' on ' + @tab + ' reorganize;')
+					raiserror ('Index %s ist leicht fragmentiert. er wurde reorganisiert',10,1,@ind_name)
+				end
+				if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats(db_id(),object_id(@tab),@ind_id,null,null)) > 30
+				begin
+					execute ('alter index' + @ind_name + ' on ' + @tab + ' rebuild;')
+					raiserror('Index %s ist stark fragmentiert. er wurde neu gebildet',10,1, @ind_name)
+				end
+				fetch tab_ind into @obj_id, @ind_id, @ind_name
+	end
+		deallocate tab_ind
+end
+if @ind is not null
+	begin
+		if not exists (select * from sys.indexes where name = @ind)
+		begin
+			raiserror ('Einen index mit dem namen %s gibt es nicht.',10,1,@ind)
+			return
+		end
+			else
+				begin
+					select @ind_id = index_id from sys.indexes where name = @ind
+					if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats(db_id(),object_id(@tab),@ind_id,null,null)) < 13
+				begin
+					raiserror ('Index %s nicht fragmentiert.',10,1,@ind)
+				end
+				if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats (db_id(), object_id(@tab),@ind_id, null,null)) between 13 and 30
+				begin
+					execute ('alter index ' + @ind + ' on ' + @tab + ' reorganize;')
+					raiserror ('Index %s ist leicht fragmentiert. er wurde reorganisiert',10,1,@ind)
+				end
+				if (select avg_fragmentation_in_percent
+					from sys.dm_db_index_physical_stats(db_id(),object_id(@tab),@ind_id, null,null)) > 30
+				begin				
+					execute ('alter index ' + @ind + ' on ' + @tab + ' rebuild;')
+					raiserror ('Index %s ist stark fragmentiert. er wurde neu gebildet',10,1,@ind)
+				end
+		end	
+	end
+go
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+-- Datenbankschema erstellen
+create schema Lager;
+go
+create schema Verkauf;
+go
+--------------------------------------------------------------------------------------
+-- Datenbanktabellen den jeweiligen Schemas zuordnen
+alter schema Lager transfer dbo.artikel;
+go
+alter schema Verkauf transfer dbo.lieferant;
+go
+alter schema Verkauf transfer dbo.Lieferung;
+go
+--------------------------------------------------------------------------------------
+-- was ist passiert?
+select * from artikel;			-- dieser Zugriff geht nicht mehr!!!
+go
+--------------------------------------------------------------------------------------
+select * from lager.artikel;		-- es geht hiermit
+go
+--------------------------------------------------------------------------------------
+-- wenn diese Anweisung geht, dann wurden die Fremdschlüssel (FS) im
+-- hintergrund umgeschrieben.
+insert into verkauf.lieferung values ('L04','A03',500,getdate());
+go
+--------------------------------------------------------------------------------------
+-- Berechtigungsverwaltung an Datenbanksystemen speziall am SQL Server
+-- Die Verwaltung von Berechtigungen erfolgt in 3 Ebenen
+--	1. Serverebene (Instanzebene)
+--  2. Datenbankebene
+--	3. Objekt- oder Schemaebene
+--------------------------------------------------------------------------------------
+-- Logins einrichten -->Serverebene
+-- Es gibt zwei Arten der Authentifizierung
+--------------------------------------------------------------------------------------
+-- Windows- Authentifizierung
+-- wird verwendet für Benutze (User, Gruppen, oder Anwendungen)
+-- die in der gleichen Donäne arbeiten wie SQL-Server.
+-- Es wird nur der Benutzername des Login gespeichert und nicht das Passwort (PW).
+-- Beim PW vertraut SQL-Server dem Active Directorie (AD).
+--------------------------------------------------------------------------------------
+-- SQL-Server Authentifizierung
+-- wird verwendet für Login die sich von ausserhalb der Domäne mit dem
+-- SQL-Server verbinden müssen.
+--------------------------------------------------------------------------------------
+-- Die Instanz von SQL-Server arbeitet in zwei Modis.
+--	1. nur Windowsauthentifizierung
+--	2. gemischte Authentifizierung
+-- Dieser Modis kann grafisch oder mit der Prozedur sp_configure festgelegt werden.
+-- Achtung !! dann muss das DBMS neu gestartet werden.
+--------------------------------------------------------------------------------------
+use standard 
+go
+
+--------------------------------------------------------------------------------------
+-- Windows Authentifizierung
+--------------------------------------------------------------------------------------
+--UNTERSCHIEDE
+--Identifierung: Wer bin ich?
+--Authentifizerung: Wenn ich weiß wer ich bin, was darf ich?
+--------------------------------------------------------------------------------------
+create login [sql16\verwaltung]from windows;
+go
+--------------------------------------------------------------------------------------
+create login [sql16\material]from windows;
+go
+--------------------------------------------------------------------------------------
+create login [sql16\diana]from windows;
+go
+--------------------------------------------------------------------------------------
+--Der Windowsuser Horst darf sich nie mit dem SQL- Server verbinden
+--Horst ist Mitglied der Windowsgruppe "Verwaltung'" und diese Gruppe
+--hat einen Login in der SQL- Server Instanz.
+--Damit hat Horst automatisch auch ein Login
+--------------------------------------------------------------------------------------
+create login [sql16\horst] from windows;
+go
+--------------------------------------------------------------------------------------
+--Zugriff verweigern
+deny connect sql to [sql16\horst];
+--------------------------------------------------------------------------------------
+--SQL- Server Login
+create login [Frank] with Password = 'Pa$$w0rd';
+go
+--------------------------------------------------------------------------------------
+create login [Dieter] with Password = 'Pa$$w0rd';
+go
+--------------------------------------------------------------------------------------
+--Erstellen von Serverrollen, zuweisen von Serverberechtigung 
+--und Arbeit mit festen Serverrollen
+--------------------------------------------------------------------------------------
+--Feste Serverrollen
+(sysadmin, securityadmin, setupadmin, serveradmin, processadmin..)
+--------------------------------------------------------------------------------------
+--Diana soll Sysadmin werden
+alter server role sysadmin add member [sql16\Diana];
+--------------------------------------------------------------------------------------
+--erstellen einer benutzerdefinierten Serverrolle
+create server role useredit;
+go
+--------------------------------------------------------------------------------------
+--Mitglieder der Rolle sollen Login bearbeitet werden
+grant alter any login to useredit;
+go
+--------------------------------------------------------------------------------------
+--Der Rolle sollen die Benutzer der Windowsrolle Verwaltung zugewiesen werden
+alter server role useredit add member [sql16\verwaltung];
+--------------------------------------------------------------------------------------
+--weitere Berechtigung für die Serverrolle useredit hinzufügen
+grant alter any credential to [useredit];
+go
+------------------------------------------------------------------------------
+--2. Ebene Datenbank
+--Datenbankbenutzer einrichten
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+--Aufgabe
+--Die Logins Verwaltung, Material
+--Frank und Dieter solle sich mit der Datenbank Standard verbinden dürfen
+create user verwaltung from login [sql16\verwaltung];
+--------------------------------------------------------------------------------------
+--Standardschema für den Datenbankbenutzer Verwaltung festlegen
+alter user verwaltung 
+with default_schema = verkauf;
+go
+--------------------------------------------------------------------------------------
+ create user Material from login[sql16\Material] 
+ with default_schema = lager;
+ go
+ --------------------------------------------------------------------------------------
+ --Karl ist Lehrling und darf sich nicht mit der Datenbank Standard verbinden
+ --Für Ihn wird eine Trainingsdatenbank erstellt, in der er DBO'ler ist.
+ --Weiterhin werden 2 Benutzer, 2 Login (Willi1 und Willi2) bereitgestellt denen
+ --in der Traiingsdatenbank Berechtigungen erteilen kann. 
+ --------------------------------------------------------------------------------------
+ use master
+ go
+ --------------------------------------------------------------------------------------
+ create login willi1 with password = 'Pa$$w0rd';
+ create login willi2 with password = 'Pa$$w0rd';
+ go
+ --------------------------------------------------------------------------------------
+ create database training;
+ go
+ --------------------------------------------------------------------------------------
+ --Karl den Datenbankzugriff auf standard verbieten und den 
+ --Zugriff auf Training erlauben
+--------------------------------------------------------------------------------------
+ create user karl from login [sql16\karl];
+ go
+ --------------------------------------------------------------------------------------
+ deny connect to karl;
+ go
+ --------------------------------------------------------------------------------------
+ use training
+ alter role db_owner add  member karl;
+ --------------------------------------------------------------------------------------
+ use standard go
+ --------------------------------------------------------------------------------------
+ --benutzerdefinierte Datenrolle erstellen
+ create role dbkonfig;
+ go 
+ --------------------------------------------------------------------------------------
+ --Berechtigungen zuweisen
+ grant alter any database to dbkonfig;
+ go
+ --------------------------------------------------------------------------------------
+ grant create view to dbkonfig;
+ go
+ --------------------------------------------------------------------------------------
+ alter role dbkonfig add member material;
+ --------------------------------------------------------------------------------------
+create user frank from login Frank;
+create user dieter from login dieter;
+--------------------------------------------------------------------------------------
+--3. ebene datenbankobjecte 
+--------------------------------------------------------------------------------------
+--frank und dieter sollen select, update und insert- Berechtigungen 
+--auf die Tabellen: Lieferant und Lieferung im Schema Verkauf erhalten
+--------------------------------------------------------------------------------------
+grant insert, update, select
+on schema::verkauf
+to frank;
+go 
+--------------------------------------------------------------------------------------
+grant insert, update, select
+on schema::verkauf
+to dieter;
+go
+--------------------------------------------------------------------------------------
+--Delete für die Tabelle Lieferung für Frank und Dieter erlauben
+grant delete 
+on verkauf.Lieferung 
+to frank;
+go
+--------------------------------------------------------------------------------------
+grant delete 
+on verkauf.Lieferung 
+to dieter;
+go
+--------------------------------------------------------------------------------------
+--den Mitarbeitern von Verwaltung alle Rechte auf die Tabellen 
+--Lieferant , Artikel, Lieferung zuweisen
+grant insert, update, select, delete
+on schema::verkauf
+to verwaltung;
+go 
+--------------------------------------------------------------------------------------
+grant insert, update, select, delete
+on schema::lager
+to verwaltung;
+go
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+--Sichern und Wiederherstellen von Datenbanken 
+--gesichert können alle benutzerdefinierten Datenbanken werden und Systemdatenbanken 
+--außer die tempdb
+--------------------------------------------------------------------------------------
+--Die tempdb kann deswegen nicht gesichert werden, weil Sie beim herunterfahren
+--des DBMS gelöscht und beim hochfahren des DBMS neu erstellt wird 
+--------------------------------------------------------------------------------------
+--Datenbanken sollten regelmäßig gesichert werden, egal welches System der 
+--Hochverfügbarkeit verwendet wird. (zb. Cluster, Geodaten, Spiegelung von DB, Raids etc.)
+--------------------------------------------------------------------------------------
+--Die Art und Weise der Sicherungsstrategie ist abhängig vom Wiederherstellungsmodel
+--der Datenbank.
+--------------------------------------------------------------------------------------
+--1. einfaches Wiederherstellungsmodel
+--		bei jedem Checkpoint wird der nicht aktive Teil des Transactionsprotokolles abgeschnitten
+--		Deshalb kann ich in diesem Model die Datenbank nur vollständig und differentiell sichern.
+--------------------------------------------------------------------------------------
+--2. vollständiges Wiederherstellungsmodel
+--		bei einem Checkpoint wird das Protokoll nicht abgeschnitten
+--		vollständige, differentielle und Protokollsicherungen sind möglich
+--in diesem Model ist es möglich, die Datenbank bis zum Ausfallzeitpunkt wiederherzustellen
+--Damit das Protokoll nicht vollläuft (Fehler 9002) muss die DB regelmäßig eine Protokollsicherung durchführen
+--Nur bei einer Protokollsicherung wird der nicht aktive Teil des Protokolls abgeschnitten werden.
+--------------------------------------------------------------------------------------
+--3. Massenprotokolliertes Wiederherstellungsmodel
+--		ist eine Ergänzung des vollständigen Wiederherstellungsmodels und wird verwendet bei 
+--		Massenkopiervorgängen (zb. bulk insert, select into, insert mit openrowset(); etc.)
+--------------------------------------------------------------------------------------
+--Jede Sicherungsline einer Datenbank beginnt mit einer vollständigen Sicherung
+--Der Wechsel vom einfachen zum vollständigen Wiederherstelllungsmodel und umgekehrt
+--unterbricht diese Line
+--------------------------------------------------------------------------------------
+--Wohin sichern
+--1. direkt auf Bandlaufwerk (nicht mehr empfohlen, weil ALT!)
+--2. in eine Netzwerkfreigabe
+--3. auf eine lokale Festplatte/lokales Device und danach sichern auf 
+--	 eine Netzwerkfreigabe oder Bandlaufwerk 
+--------------------------------------------------------------------------------------
+--empfohlen wird ein sogenanntes Sicherungsdevice
+--		es handelt sich um einen Namen für einen Speicherort
+--------------------------------------------------------------------------------------
+--Sicherungsdevice erstellen
+exec sp_addumpdevice 'disk','master_sicher','g:\backup\master_sicher.bak';
+go
+
+--------------------------------------------------------------------------------------
+--danach im Objekt- Explorer rechtsklick auf Ordner Sicherungsmedien > "neues Sicherungsmedium" 
+-- und msdb_sicher + standard_sicher generieren
+exec sp_addumpdevice 'disk','master_sicher','g:\dbbackup\master_sicher.bak';
+go
+--------------------------------------------------------------------------------------
+--Master DB sichern
+backup database master to master_sicher with name = 'Master voll';
+--------------------------------------------------------------------------------------
+--im Objektexplorer auf Datenbanken > Systemdatenabnken, rechtsklick auf msdb "task" sichern, Ziel entfernen > 
+--neu hinzufügen mit msdb sicherausführen, ggf mit Kopiesicherung 
+--medientoptionen im selben fenster: zb. sicherung nach abschluss prüfen
+--------------------------------------------------------------------------------------
+--MSDB wurde grafisch gesichert
+--------------------------------------------------------------------------------------
+--Datenbank Standard sichern
+--1. vollständige Datenbanksicherung 
+backup database standard to standard_sicher with name = 'standard_voll';
+go
+--------------------------------------------------------------------------------------
+use standard
+go 
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L35','Krause',5,'Erfurt');
+backup log standard to standard_sicher with name = 'Protokol';
+go --nach insert - immer sichern des Protokolls
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L36','Krausine',5,'Erfurt');
+backup log standard to standard_sicher with name = 'Protokol';
+go
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L37','Flachzange',5,'Erfurt');
+backup log standard to standard_sicher with name = 'Protokol';
+go
+--------------------------------------------------------------------------------------
+backup database standard to standard_sicher with name = 'standard_diff', differential;
+go	--nach der Sicherung des Protokolls - differentielle Sicherung 
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L38','Pfeifenkopp',5,'Erfurt');
+backup log standard to standard_sicher with name = 'Protokol';
+go
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L39','MrDrehMalAmRad',5,'Erfurt');
+backup log standard to standard_sicher with name = 'Protokol';
+go
+--------------------------------------------------------------------------------------
+insert into verkauf.lieferant values('L40','Hallunke',5,'Erfurt');
+go	--fehlt nach sicherung und wiederherstellung 
+--------------------------------------------------------------------------------------
+--sichern des protokollfragments
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+backup log standard to standard_sicher with name = 'Fragment', norecovery;
+go
+--------------------------------------------------------------------------------------
+--1. sicherungen überprüfenist der Medienheader intakt
+restore verifyonly from standard_sicher;
+go
+--------------------------------------------------------------------------------------
+--2. allgemeine Angabenüber das Sicherungsmedium
+restore labelonly from standard_sicher;
+go
+--------------------------------------------------------------------------------------
+--3. Aufbau der gesicherten Datenbank
+restore filelistonly from standard_sicher;
+go
+--------------------------------------------------------------------------------------
+--4. Die Sicherungshistorie anzeigen (Sicherungsverlauf)
+restore headeronly from standard_sicher; 
+go
+--------------------------------------------------------------------------------------
+use master 
+go
+--------------------------------------------------------------------------------------
+--Wiederherstellen der Datenbank standard
+--vollständige Sicherung wiederherstellen
+--------------------------------------------------------------------------------------
+restore database standard from standard_sicher with file = 2, norecovery;
+go
+--------------------------------------------------------------------------------------
+restore headeronly from standard_sicher; 
+go
+--------------------------------------------------------------------------------------
+restore database standard from standard_sicher with file = 6, norecovery;
+go
+--------------------------------------------------------------------------------------
+--Aufgaben automatisieren 
+--ein Auftrag besteht aus einem oder mehreren Auftragsschritten
+--ein Auftrag besitzt keinen, einen oder mehrere Zeitpläne
+--------------------------------------------------------------------------------------
+--damit Aufträge ausgeführt werden  können 
+--muss der SQL-Server Agent gestartet sein
+--------------------------------------------------------------------------------------
+restore headeronly from standard_sicher; 
+go
+--------------------------------------------------------------------------------------
+restore log standard from standard_sicher with file = 7, norecovery;
+go
+--------------------------------------------------------------------------------------
+restore log standard from standard_sicher with file = 8, recovery;
+go
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+select * from VERKAUF.lieferant
+--------------------------------------------------------------------------------------
+--Schreiben Sie eine gespeicherte Prozedur, welcher der Name
+--einer benutzerdatenbank übergeben wird
+--Die Prozedur soll alle offenen Prozesse für diese Datenbank killen
+
+use master;
+go
+
+create procedure p_KillDatabaseCon @dbname sysname
+as
+set nocount on;
+if @dbname in('master','msdb','tempdb','model','distribution')
+ begin
+	raiserror('Nur Benutzerdatenbanken angeben!',10,1);
+	return;
+ end;
+
+declare @minproz int, @maxproz int, @sql nvarchar(max);
+select @minproz = min(spid) 
+	   from master.dbo.sysprocesses where dbid = db_id(@dbname);
+select @maxproz = max(spid) 
+	   from master.dbo.sysprocesses where dbid = db_id(@dbname);
+
+while @minproz <= @maxproz
+begin
+  set @sql = 'kill ' + cast(@minproz as varchar(10));
+  exec(@sql);
+  set @minproz = @minproz + 1;
+end;
+set nocount off;
+go
+--------------------------------------------------------------------------------------
+exec p_KillDatabaseCon'standard';
+--------------------------------------------------------------------------------------
+use standard 
+go
+
+--Unterschied zwischen gespeicherten Prozeduren und Funktionen 
+--Aufruf einer Prozedur 
+exec sp_help 'lieferant';
+--------------------------------------------------------------------------------------
+--Aufruf einer Funktion
+select getdate();
+--------------------------------------------------------------------------------------
+--Berechtigungen zum erstellen von Funktionen 
+create login Uwe with Password = 'Pa$$w0rd';
+go
+--------------------------------------------------------------------------------------
+use standard 
+go
+
+create user Uwe from login [Uwe];
+go
+--------------------------------------------------------------------------------------
+--Berechtigung zum erstellen von Funktionen
+grant create function to uwe;
+go
+--Berechtigung zum ändern des Schemas dbo.
+grant alter on schema::dbo to uwe;
+go
+--Skalarfunktion
+--gibt genau einen Wert zurück 
+--kann mehrere SQL Anweisungen im Funktionskörper haben 
+--der Rückgabewert entspricht einen skalaren Basisdatentyp
+
+--Aufgabe:
+--Es soll eine Funktion erstellt werden, der ein Datum übergeben wird. 
+--aus diesem Datum soll die Nummer der ISO- WOche berechnet werden
+
+create function dbo.isowoche (@datum datetime)
+returns integer
+as
+begin
+	declare @Woche int;
+	set @woche = datepart(wk, @datum) +1 - 
+				 datepart(WK,cast(datepart(yy,@datum) as char(4)) + '0104');
+
+--wenn der 1.,2. und 3. Januar zur letzten Kalenderwoche
+--des Vorjahres angehört
+if @woche = 0
+	set @woche = dbo.isowoche(cast(datepart(yy,@datum)- 1 as char(4)) + 
+				  '12' + cast(24 + datepart(day,@datum) as char(2))) + 1;
+
+--Wenn der 29.,30, und der 31 Dezember zur ersten Kalenderwoche 
+--des neuen Jahres angehört
+if DATEPART(mm,@datum) = 12 and ((datepart(dd,@datum) - 
+   DATEPART(dw,@datum)) >= 28)
+   set @woche = 1;
+  return @woche;
+end;
+go
+--------------------------------------------------------------------------------------
+--Prüfen:
+select dbo.isowoche('29.12.2022');
+select dbo.isowoche('01.01.2021');
+--------------------------------------------------------------------------------------
+use standard 
+go
+
+--Schreiben Sie eine Funktion der ein Datum und ein einzelnes Zeichen übergeben wird 
+--Das Ergebnis sollte wie folgt aussehen: 29#6#2022
+
+create function dbo.datummitzeichen (@datum datetime, @zeichen char(1))
+returns varchar(10)
+as
+begin
+    declare @DatumZeichenfolge as varchar(10);
+    set @DatumZeichenfolge = cast(datepart(dd,@datum) as varchar(2)) +
+    @zeichen + cast(datepart(m,@datum) as varchar(2)) +
+    @zeichen + cast(datepart(yyyy,@datum) as varchar(4));
+    return @DatumZeichenfolge;
+end;
+
+--Validierung von plz
+create function dbo.fk_plzvalid(@plz varchar(5))
+returns bit
+as
+	begin
+	declare @result bit;
+	if @plz like '[0-9][0-9][0-9][0-9][0-9]'
+		set @result = 1;
+	else
+		set @result = 0;
+
+	return @result;
+	end;
+go
+
+select dbo.fk_plzvalid('ABC12') as [Nein], dbo.fk_plzvalid('99082') as [Ja];
+
+use standard
+go
+
+--Inlinefunktion
+
+--Ausgangspunkt 
+create view v_lftart
+as
+select a.lnr, lname, lstadt, ldatum , aname
+from lieferant as a join lieferung as b on a.lnr = b.lnr 
+	 join artikel as c on b.anr = c.anr
+where lstadt = 'Hamburg'
+and datepart(yyyy,ldatum) = 1990;
+go
+
+select * from v_lftart
+
+--diese Sicht ist sehr starr
+--es bietet sich eine Inlinefunktion an
+
+create function dbo.fk_lftart(@ort varchar(100), @jahr int)
+returns table 
+as
+return(select a.lnr, lname, lstadt, ldatum , aname
+from lieferant as a join lieferung as b on a.lnr = b.lnr 
+	 join artikel as c on b.anr = c.anr
+where lstadt = @ort
+and datepart(yyyy,ldatum) = @jahr);
+go
+
+select * from dbo.fk_lftart('Hamburg',1990);
+select * from dbo.fk_lftart('Ludwigshafen',1990);
+--------------------------------------------------------------------------------------
+--Funktionen mit mehreren Anweisungen und Tabellenrückgabe
+--Eine Funktion der entweder der Tabellenname 'Lieferant' 
+--oder der Tabellenname "artikel" übergeben wird
+--Je nachdem was übergeben wird, soll entweder die Nummer, der Name und der Wohnort 
+--der Lieferanten oder die Nummer, der Name und der Lagerort der Artikel
+--ausgegeben werden
+
+use standard 
+go
+
+create function fk_liefartartikel(@tabname sysname = 'Lieferant')
+returns @tab table (Nummer char(3),
+					Namen varchar(100),
+					Orte varchar(100))
+as
+begin
+	if @tabname = 'Lieferant'
+	insert into @tab select lnr, lname, lstadt from lieferant;
+	if @tabname = 'Artikel'
+	insert into @tab select anr, aname, astadt from artikel;
+	return;
+end;
+go
+--------------------------------------------------------------------------------------
+select * from fk_liefartartikel('artikel');
+--------------------------------------------------------------------------------------
+--Schreiben Sie eine Funktion der eine Monatsangabe übergeben wird
+--Dieser Monat soll als Zahl 1-12 oder mit seinen Namen (Januar, Februar...)
+--übergeben werden können
+
+--Die Funktion soll die Lieferantennummer, den Lieferantennamen, 
+--den Namen des gelieferten Artikels und das Lieferdatum (DE Format) 
+--zurückgeben
+--------------------------------------------------------------------------------------
+use standard;
+go
+--------------------------------------------------------------------------------------
+create function fk_liefmonat(@monat varchar(100))
+returns @erg table (Lieferantennummer char(3),
+					Lieferantenname varchar(50),
+					Artikelname varchar(50),
+					Lieferdatum varchar(10))
+as
+begin
+ if len(@monat) > 2
+ begin
+	if @monat in('Januar','Februar','März','April','Mai','Juni',
+				 'August','September','November','Dezember')
+	   insert into @erg select a.lnr, lname, aname,
+						convert(char(10), ldatum, 104)
+						from lieferant a join lieferung b on a.lnr = b.lnr
+						join artikel c on b.anr = c.anr
+						where datename(mm,ldatum) = @monat;
+ end
+ else
+ begin
+ if cast(@monat as int) between 1 and 12
+ begin
+		insert into @erg select a.lnr, lname, aname, 
+						 convert(char(10), ldatum, 104)
+						 from lieferant a join lieferung b on a.lnr = b.lnr
+						 join artikel c on b.anr = c.anr
+						 where datepart(mm,ldatum) = cast(@monat as int);
+  end;
+ end;
+  return;
+end;
+go
+--------------------------------------------------------------------------------------
+select * from fk_liefmonat('8');
+select * from fk_liefmonat('August');
+--------------------------------------------------------------------------------------
+use standard
+go
+--------------------------------------------------------------------------------------
+--Trigger
+--DML und DDL Trigger
+--------------------------------------------------------------------------------------
+--DML Trigger
+--
+--1. After Trigger
+--werden ausgelöst, nachdem das auslösende Ereignis stattgefunden hat
+-- sind immer an die auslösende Transaktion (DML- Anweisung gebunden)
+--können nur an Basistabellen gebunden werden
+
+--Beispiel: Andre betritt den Raum (Ereignis) und das Licht geht automatisch an (Ausführung)
+--------------------------------------------------------------------------------------
+--2. INSTEAD OF Trigger
+--werden ausgelöst bevor das auslösende Ereignis ausgeführt wurde
+--können an Tabellen und Sichten gebunden werden
+
+--Beispiel: Das Licht ist bereits um 7Uhr an, bevor Andre den Raum betritt. 
+--------------------------------------------------------------------------------------
+--für alle Trigger gilt:
+--Sie sollten keine Resulset zurückgeben
+--Sie sollten NICHT rekursiv stattfinden (weder indirekt noch direkt)
+--Trigger nicht schachteln
+--es gibt bei triggern keine Reihenfolge bei der Ausführung
+
+--Trigger werden in den Katalogsichten sys.objects, sys.sql_modules,
+--sys.triggers und sys.trigger_events gespeichert
+--------------------------------------------------------------------------------------
+--INSERT Trigger
+--wenn auf eine Triggertabelle eine Insert- Anweisung durchgeführt wird
+--wird er Trrigger ausgelöst 
+--bildet die logische Tabelle INSERTED. In dieser befinden sich die gerade aufgenommenen Datensätze. 
+--------------------------------------------------------------------------------------
+--Beispiel:
+--Wird eine neue Lieferung aufgenommen, soll die Liefermenge zur Lagermenge
+--des entsprechenden Artikels hinzugefügt werden
+
+create trigger tr_liefneu
+on dbo.lieferung			--an die Tabelle lieferung gebunden
+for insert 
+as
+	update dbo.artikel
+	set amenge = amenge + lmenge   ---bezieht sich auf 500(vorher) + 500 aus der insert zeile
+	from dbo.artikel as a join inserted as b on a.anr = b.anr;
+go
+
+select * from artikel where anr = 'A06';
+
+insert into lieferung values ('L03','A06',500,getdate());
+--------------------------------------------------------------------------------------
+--Update Trigger
+--wird ausgelöst, wenn auf die Triggertabelle eine Updateanweisung ausgeführt wird
+--es werden, die logischen Tabellen INSERTED und deleted gebildet
+--------------------------------------------------------------------------------------
+--In Inserted steht der/die Datensätze, nach dem Update und 
+--in Deleted steht der/die Datensätze, vor dem Update
+--das heißt in INSERTED stehen die neuen, geänderten Datesätze und in deleted die Datensätze, 
+--wie Sie vor der Änderung waren
+----------------------------------------------------------------------------------------Beispiel:
+--Bei Kontrollen der Lieferung im Lager wird festgestellt, dass die letzte Lieferung
+--für den Artikel A06 nicht stimmt. Es wurde A05 geliefert.
+--Ein Trigger soll die Lagermengen der betroffenen Artikel anpassen.
+create trigger tr_anrneu
+on dbo.lieferung 
+for update
+as
+	update dbo.artikel
+	set amenge = amenge - lmenge   ---bezieht sich auf 500(vorher) - 500 aus der insert zeile
+	from dbo.artikel as a join deleted as b on a.anr = b.anr;
+
+	update dbo.artikel
+	set amenge = amenge + lmenge   ---bezieht sich auf 500(vorher) + 500 aus der insert zeile
+	from dbo.artikel as a join inserted as b on a.anr = b.anr;
+go
+
+select * from artikel where anr = 'A06';
+select * from artikel where anr = 'A05';
+
+update lieferung 
+set anr = 'A05'
+where anr = 'A06' and lnr = 'L03' and convert (char(10),ldatum,104)
+= convert(char(10),getdate(),104);
+--------------------------------------------------------------------------------------
+--DELETE Trigger
+--wird ausgelöst wenn auf die Triggertabelle eine Delete- Anweisung ausgeführt wird
+--er bildet die logische Tabelle deleted, in welcher die gerade gelöschten Datensätze stehen
+--------------------------------------------------------------------------------------
+--Aufgabe:
+--Die heute aufgenommenen Lieferungen von L03 und dem Artikel A05
+--soll gelöscht werden
+--Ein Trigger soll die entsprechende Lagermenge anpassen
+
+create trigger tr_liefweg
+on dbo.lieferung 
+for delete
+as
+	update dbo.artikel
+	set amenge = amenge - lmenge   ---bezieht sich auf 500(vorher) + 500 aus der insert zeile
+	from dbo.artikel as a join deleted as b on a.anr = b.anr;
+go
+
+select * from artikel where anr = 'A05';
+
+delete lieferung where anr = 'A05' and lnr = 'L03'
+and convert(char(10),ldatum,104) = convert(char(10),getdate(),104);
+--------------------------------------------------------------------------------------
+insert into lieferung values ('L03','A06',500,GETDATE());
+--------------------------------------------------------------------------------------
+--INSTEAD Of Trigger
+--können an tabellen und sichten gebunden werden, bevor die eigentliche 
+--Transaktion Daten ändert
+--------------------------------------------------------------------------------------
+--Dieser Trigger bedeutet 'an Stelle von...'
+
+--FAKE- Trigger auf die Tabelle Artikel bei Insert
+create trigger tr_art 
+on artikel
+instead of insert 
+as
+	raiserror('Das war wohl nichts!',10,1);
+	rollback transaction;
+go
+--exec xp_cmdshell 'format e:\';
+
+insert into artikel values ('A10','Unterlegscheibe','schwarz',10,'Gotha',100);
+go
+--------------------------------------------------------------------------------------
+--Beispiel:
+create view v_lieflief
+as
+select a.lnr, lname, status, lstadt, anr, lmenge, ldatum 
+from lieferant as a join lieferung as b on a.lnr = b.lnr;
+go
+
+select * from v_lieflief;
+go
+
+insert into v_lieflief values ('L10','Krause',10,'Erfurt','A03',500,getdate());
+
+--mit einem INSTEAD Of Trigger auf diese Sicht können wir erreichen, dass die
+--INSERT Anweisung funktioniert 
+--------------------------------------------------------------------------------------
+create trigger tr_liefliefinsert 
+on v_lieflief instead of insert 
+as 
+if not exists (select * from lieferant where lnr in (select lnr from inserted))
+begin
+insert into lieferant select lnr, lname, status, lstadt from inserted;
+insert into lieferung select lnr, anr, lmenge, ldatum  from inserted;
+end;
+else
+insert into lieferung select lnr, anr, lmenge, ldatum  from inserted;
+go
+--------------------------------------------------------------------------------------
+use master
+go
+--------------------------------------------------------------------------------------
+--Erstellen Sie ein Sicherungsdevice 'standard-sicher'
+--Erstellen Sie einen Auftrag:
+--		DB Standard Samstag 12Uhr vollständig sichern
+--		DB Standard täglich (außer Sa. und So.) 12Uhr diff sichern
+--		DB Standard täglich (außer Sa. und So.) von 8Uhr an
+--		bis 16Uhr alle 10min Protokoll sichern
+--Benutzerdefinierte Fehlermeldung Nr 500000, Schweregrad 10
+--------------------------------------------------------------------------------------
+exec sp_addumpdevice 'disk','standard-sicher','g:\db_backup\standard_sicher.bak';
+go 
+
+exec sp_addmessage 500000,10, 'Wooooooop woooooop du Layer8','us_english',null,'replace';
+go
+
+raiserror(500000,10,1);
+--------------------------------------------------------------------------------------
+--Emails aus einem Skript versenden
+--dafür wird die Prozedur sp_send_dbmail verwendet 
+--------------------------------------------------------------------------------------
+--Aufgabe:
+--Wir schreiben eine Abfrage welche die Nummern, die Namen und die Anzahl 
+--der Lieferungen der jeweiligen Lieferanten angezeigt.
+--Das Ergebnis soll per Database Email an die Empfänger verschickt werden.
+--Es möglich, das Ergebnis im Body der Email der Mail als Dateianhang zu versenden.
+
+declare @erg nvarchar(max);
+set @erg = (select  a.lnr, '    ', lname  , '   ', anz  , ',    '
+			from standard.dbo.lieferant as a
+			join (select  lnr, count(*) as anz from standard.dbo.lieferung
+					group by lnr) as b on a.lnr = b.lnr 
+			for xml auto, elements);
+
+exec msdb.dbo.sp_send_dbmail
+	@profile_name = 'Mein SQL- Server',
+	@recipients = 'Vanessa.Witzel@training.erfurt.iad.de',
+	@query = 'select  a.lnr,lname  ,anz
+			from standard.dbo.lieferant as a
+			join (select  lnr, count(*) as anz from standard.dbo.lieferung
+					group by lnr) as b on a.lnr = b.lnr',
+	@subject = 'Wichtige Information',
+	@attach_query_result_as_file = 1,
+	@body = @erg,
+	@body_format = 'HTML';
+go
